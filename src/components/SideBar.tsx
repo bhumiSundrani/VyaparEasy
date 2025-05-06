@@ -1,53 +1,9 @@
-import React from 'react';
-import { Settings, BarChart2, ArrowUpCircle,
+import React, { useState } from 'react';
+import {
+  Settings, BarChart2, ArrowUpCircle,
   ArrowDownCircle, Package, LayoutDashboard, TrendingUp,
-  TrendingDown,  Layers } from 'lucide-react'; // optional icons
-
-const SideBar = () => {
-  return (
-    <div className="bg-[#111827] min-h-screen flex flex-col text-white p-4 w-[17%] shadow-lg">
-      {/* Logo Section */}
-      <div className="flex items-center space-x-2 mb-8">
-        <img
-          src="/assets_task_01jtk0k64vf999vsvfvfbv3w5b_1746542400_img_1.webp"
-          className="h-10 w-10 object-cover rounded-full"
-          alt="Logo"
-        />
-        <span className="text-xl font-bold">
-          Vyapar<span className="text-orange-400">Easy</span>
-        </span>
-      </div>
-
-      {/* Navigation Sections */}
-      <div className="flex flex-col space-y-6">
-        <NavSection title="Menu" items={[
-          { label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-          { label: 'Analytics', icon: <BarChart2 size={18} /> },
-        ]} />
-
-        <NavSection title="Quick Actions" items={[
-          { label: 'Add Sales', icon: <ArrowUpCircle size={18} /> },
-          { label: 'Add Purchases', icon: <ArrowDownCircle size={18} /> },
-        ]} />
-
-        <NavSection title="Inventory" items={[
-          { label: 'Products', icon: <Package size={18} /> },
-          { label: 'Categories', icon: <Layers size={18} /> },
-        ]} />
-
-        <NavSection title="Transactions" items={[
-          { label: 'Sales', icon: <TrendingUp size={18} /> },
-          { label: 'Purchases', icon: <TrendingDown size={18} /> },
-        ]} />
-
-        <div className="mt-6 flex items-center space-x-2 cursor-pointer hover:text-orange-400 transition-colors">
-          <Settings size={18} />
-          <span className="text-sm font-medium">Settings</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+  TrendingDown, Layers, Menu
+} from 'lucide-react';
 
 interface NavItem {
   label: string;
@@ -58,7 +14,6 @@ interface NavSectionProps {
   title: string;
   items: NavItem[];
 }
-
 
 const NavSection: React.FC<NavSectionProps> = ({ title, items }) => (
   <div>
@@ -76,5 +31,81 @@ const NavSection: React.FC<NavSectionProps> = ({ title, items }) => (
     </ul>
   </div>
 );
+
+const SideBar: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      {/* Toggle Button for Mobile */}
+      <div className="md:hidden flex items-center p-4  text-black h-0">
+        <button onClick={() => setIsOpen(!isOpen)}>
+          <Menu size={24} />
+        </button>
+      </div>
+      
+      {/* Sidebar */}
+      <div
+         className={`
+          bg-[#111827] text-white p-4 shadow-lg z-40 h-full
+          fixed top-0 left-0 md:static
+          w-[70%] sm:w-[60%] md:w-full
+          transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          transition-transform duration-300 md:translate-x-0 md:block
+        `}
+      >
+        <div className='flex flex-col h-full overflow-y-auto'>
+        {/* Logo Section */}
+        <div className="flex items-center space-x-2 mb-8">
+          <img
+            src="/assets_task_01jtk0k64vf999vsvfvfbv3w5b_1746542400_img_1.webp"
+            className="h-10 w-10 object-cover rounded-full"
+            alt="Logo"
+          />
+          <span className="text-xl font-bold md:block">
+            Vyapar<span className="text-orange-400">Easy</span>
+          </span>
+        </div>
+
+        {/* Navigation Sections */}
+        <div className="flex flex-col space-y-6">
+          <NavSection title="Menu" items={[
+            { label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+            { label: 'Analytics', icon: <BarChart2 size={18} /> },
+          ]} />
+
+          <NavSection title="Quick Actions" items={[
+            { label: 'Add Sales', icon: <ArrowUpCircle size={18} /> },
+            { label: 'Add Purchases', icon: <ArrowDownCircle size={18} /> },
+          ]} />
+
+          <NavSection title="Inventory" items={[
+            { label: 'Products', icon: <Package size={18} /> },
+            { label: 'Categories', icon: <Layers size={18} /> },
+          ]} />
+
+          <NavSection title="Transactions" items={[
+            { label: 'Sales', icon: <TrendingUp size={18} /> },
+            { label: 'Purchases', icon: <TrendingDown size={18} /> },
+          ]} />
+
+          <div className="mt-6 flex items-center space-x-2 cursor-pointer hover:text-orange-400 transition-colors">
+            <Settings size={18} />
+            <span className="text-sm font-medium">Settings</span>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      {/* Overlay for Mobile when Sidebar is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 z-30 md:hidden"
+          onClick={() => setIsOpen(false)}
+        ></div>
+      )}
+    </>
+  );
+};
 
 export default SideBar;

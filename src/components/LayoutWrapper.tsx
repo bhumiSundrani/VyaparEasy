@@ -5,24 +5,30 @@ import SideBar from './SideBar';
 import { usePathname } from 'next/navigation';
 
 const LayoutWrapper = ({
-    children,
-  }: Readonly<{
-    children: React.ReactNode;
-  }>) => {
-    const pathname = usePathname()
-    const noLayoutRoute = "/verify-user"
-    if(pathname.startsWith(noLayoutRoute)) return <>{children}</>
-  return (
-    <div className='flex h-screen'>
-        <SideBar/>
-        <div className='flex flex-col flex-1'>
-            <Navbar/>
-            <main className="p-4 overflow-auto">
-            {children}
-        </main>
-        </div>
-    </div>
-  )
-}
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) => {
+  const pathname = usePathname();
+  const noLayoutRoute = "/verify-user";
 
-export default LayoutWrapper
+  if (pathname.startsWith(noLayoutRoute)) return <>{children}</>;
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+  {/* Sidebar wrapper with fixed width */}
+  <div className="hidden relative md:block md:w-[240px] bg-[#111827]">
+    <SideBar />
+  </div>
+
+  {/* Main content */}
+  <div className="flex-1 flex flex-col">
+    <Navbar />
+    <main className="p-4 overflow-auto">{children}</main>
+  </div>
+</div>
+
+  );
+};
+
+export default LayoutWrapper;

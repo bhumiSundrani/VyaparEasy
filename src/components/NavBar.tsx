@@ -4,6 +4,7 @@
 import { FiLogOut, FiBell } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import SideBar from './SideBar';
 
 export default function Navbar() {
   const router = useRouter();
@@ -19,7 +20,9 @@ export default function Navbar() {
 
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b bg-white shadow-sm">
-      <h1 className="text-xl font-semibold">VyaparEasy</h1>
+      <div className='relative md:hidden'>
+        <SideBar/>
+      </div>
 
       <div className="flex items-center gap-4">
         {/* Optional: Notifications */}
