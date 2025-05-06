@@ -1,0 +1,13 @@
+import { verifyToken } from "@/lib/jwtTokenManagement"
+import { NextRequest, NextResponse } from "next/server"
+
+export function authMiddleware(request: NextRequest){
+    const token = request.cookies.get('token')?.value
+    if(!token) return NextResponse.redirect(new URL('/verify-user', request.url))
+    try {
+        const user = verifyToken(token)
+        return NextResponse.next()
+    } catch (error) {
+        return NextResponse.redirect(new URL('/verify-user', request.url))
+    }
+}
