@@ -3,13 +3,18 @@
 
 import { FiLogOut, FiBell } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function Navbar() {
   const router = useRouter();
 
   const handleLogout = () => {
-    // Your logout logic
-    router.push('/login');
+    try {
+      axios.post('/api/auth/logout')
+      router.push('/verify-user');
+    } catch (error) {
+      console.log("Error logging out user")
+    }
   };
 
   return (
