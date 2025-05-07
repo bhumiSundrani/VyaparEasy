@@ -2,6 +2,7 @@ import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface Product extends Document{
     name: string;
+    brand: string;
     category: Types.ObjectId;
     unit: 'kg' | 'gm' | 'liter' | 'ml' | 'pcs'
     costPrice: number;
@@ -16,6 +17,10 @@ const ProductSchema : Schema<Product> = new Schema({
         required: true,
         trim: true,
         unique: true
+    },
+    brand: {
+        type: String,
+        trim: true,
     },
     category: {
         type: Schema.Types.ObjectId,

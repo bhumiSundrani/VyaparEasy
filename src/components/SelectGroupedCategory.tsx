@@ -45,7 +45,7 @@ const SelectGroupedCategory = ({value, onChange}: {value: string, onChange: (val
   return (
     <Select onValueChange={(val) => onChange(val)} value={value || undefined}>
       <SelectTrigger>
-        <SelectValue placeholder="Select Category">
+        <SelectValue placeholder="Select Category" className='text-sm sm:text-base'>
           {value ? getCategoryLabel(value) : "Select Category"}
         </SelectValue>
       </SelectTrigger>

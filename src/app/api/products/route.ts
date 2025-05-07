@@ -7,6 +7,7 @@ export async function POST(req: NextRequest){
     await dbConnect()
     try {
         const body = await req.json()
+        console.log(body)
         const parsedBody = productVerificationSchema.safeParse(body)
         if(!parsedBody.success){
             const errors: Record<string, string> = {};
@@ -20,9 +21,11 @@ export async function POST(req: NextRequest){
                 errors: errors
             }, { status: 400 });
         }
-        const {name, category, unit, costPrice, sellingPrice, lowStockThreshold, currentStock} = parsedBody.data
+        console.log(parsedBody.data)
+        const {name, brand,  category, unit, costPrice, sellingPrice, lowStockThreshold, currentStock} = parsedBody.data
         await ProductModel.create({
             name, 
+            brand,
             category,
             unit,
             costPrice, 

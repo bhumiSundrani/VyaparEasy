@@ -9,9 +9,9 @@ import {
 const SelectUnit = ({ value, onChange }: { value: string, onChange: (value: string) => void }) => {
 
   return (
-    <Select onValueChange={(val) => onChange(val)} value={value}>
+    <Select onValueChange={(val) => onChange(val)} value={value} >
         <SelectTrigger>
-            <SelectValue>{value}</SelectValue> 
+            <SelectValue className='text-sm sm:text-base'>{value}</SelectValue> 
         </SelectTrigger>
         <SelectContent>
             <SelectItem value='kg'>kg</SelectItem>

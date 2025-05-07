@@ -24,7 +24,7 @@ const LayoutWrapper = ({
   {/* Main content */}
   <div className="flex-1 flex flex-col">
     <Navbar />
-    <main className="p-4 overflow-auto">{children}</main>
+    <main className="overflow-auto">{children}</main>
   </div>
 </div>
 

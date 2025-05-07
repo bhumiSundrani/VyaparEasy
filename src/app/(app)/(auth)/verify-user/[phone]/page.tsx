@@ -43,7 +43,7 @@ export default function OTPVerifyPage() {
           // Check if we have a valid user object
           if (userResponse.data.success && userResponse.data.user && Object.keys(userResponse.data.user).length > 0) {
             console.log("User already exists with data:", userResponse.data.user)
-            router.replace('/dashboard')
+            router.replace('/')
           } else {
             console.log("No existing user found, redirecting to signup")
             router.replace(`/verify-user/sign-up/${phone}`)
