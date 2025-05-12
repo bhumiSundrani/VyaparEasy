@@ -1,4 +1,5 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
+import { string } from 'zod';
 
 export interface Product extends Document{
     name: string;
@@ -9,6 +10,7 @@ export interface Product extends Document{
     sellingPrice: number;
     lowStockThreshold: number;
     currentStock: number;
+    imageUrl: string | null;
 }
 
 const ProductSchema : Schema<Product> = new Schema({
@@ -51,6 +53,9 @@ const ProductSchema : Schema<Product> = new Schema({
         type: Number,
         required: true,
         min: [0, 'Stock cannot be negative']
+    },
+    imageUrl: {
+        type: String
     }
 }, {timestamps: true})
 

@@ -1,4 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
+import { fetchImageForProduct } from "@/lib/fetchImages/fetchImageForProduct";
 import ProductModel from "@/models/Product.model";
 import { productVerificationSchema } from "@/schemas/productVerificationSchema";
 import { NextRequest, NextResponse } from "next/server";
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest){
         }
         console.log(parsedBody.data)
         const {name, brand,  category, unit, costPrice, sellingPrice, lowStockThreshold, currentStock} = parsedBody.data
+        const imageUrl = await fetchImageForProduct(name)
+        console.log("Image", imageUrl)
     try {        
         await ProductModel.create({
             name, 
@@ -31,7 +34,8 @@ export async function POST(req: NextRequest){
             costPrice, 
             sellingPrice, 
             lowStockThreshold,
-            currentStock
+            currentStock,
+            imageUrl
         })
         return NextResponse.json({
             success: true,

@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const fetchImageForProduct = async (query: string) => {
+export const fetchImageForProduct = async (query: string) => {
     const API_KEY = process.env.GOOGLE_CUSTOM_SEARCH_API
     const CX = process.env.SEARCH_ENGINE_ID
 
