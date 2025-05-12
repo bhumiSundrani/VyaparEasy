@@ -3,6 +3,7 @@ import mongoose, {Schema, Document, Types} from 'mongoose'
 export interface Category extends Document{
     name: string;
     parentCategory?: Types.ObjectId | null;
+    imageUrl: string | null;
     slug: string
 }
 
@@ -16,6 +17,9 @@ const CategorySchema : Schema<Category> = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Category",
         default: null
+    },
+    imageUrl: {
+        type: String
     },
     slug: {
         type: String,

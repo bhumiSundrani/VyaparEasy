@@ -1,7 +1,22 @@
 import dbConnect from "@/lib/dbConnect";
+import { fetchImageForCategory } from "@/lib/fetchImages/fetchImageForCategory";
 import CategoryModel from "@/models/Category.model";
 import { categoryVerificationSchema } from "@/schemas/categoryVerificationSchema";
+import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
+
+const fetchImage = async (name: string) => {
+        try {
+            const response = await axios.post(`${process.env.NEXT_BASE_URL}/api/get-images/by-category`, {name: name})
+            if(response.data.imageUrl){
+                const imageUrl = response.data.imageUrl
+                return imageUrl
+            }
+        } catch (error) {
+            console.log("Error fetching image: ", error)
+        }
+        return null
+}
 
 export async function POST(req: NextRequest){
     await dbConnect();
@@ -23,7 +38,9 @@ export async function POST(req: NextRequest){
 
         const {name, parentCategory} = parsedBody.data
         const slug = name.toLowerCase().replace(" ", "-")
-        await CategoryModel.create({name, parentCategory, slug})
+        const imageUrl = await fetchImageForCategory(name)
+        
+        await CategoryModel.create({name, parentCategory, slug, imageUrl})
         return NextResponse.json({
             success: true,
             message: "New category created"
@@ -32,7 +49,7 @@ export async function POST(req: NextRequest){
         })
 
     } catch (error) {
-        console.log("Error creating new category")
+        console.log("Error creating new category",  error)
         return NextResponse.json({
             success: false,
             message: "Error creating new category"

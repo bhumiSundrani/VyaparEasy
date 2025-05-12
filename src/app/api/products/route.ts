@@ -5,8 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest){
     await dbConnect()
-    try {
-        const body = await req.json()
+    const body = await req.json()
         console.log(body)
         const parsedBody = productVerificationSchema.safeParse(body)
         if(!parsedBody.success){
@@ -23,6 +22,7 @@ export async function POST(req: NextRequest){
         }
         console.log(parsedBody.data)
         const {name, brand,  category, unit, costPrice, sellingPrice, lowStockThreshold, currentStock} = parsedBody.data
+    try {        
         await ProductModel.create({
             name, 
             brand,
