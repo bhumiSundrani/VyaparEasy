@@ -79,18 +79,18 @@ const SideBar: React.FC = () => {
           ]} />
 
           <NavSection title="Quick Actions" items={[
-            { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "" },
-            { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "/add-product" },
+            { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "/add-sale" },
+            { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "/add-purchase" },
           ]} />
 
           <NavSection title="Inventory" items={[
-            { label: 'Products', icon: <Package size={18} />, redirectUrl: "" },
-            { label: 'Categories', icon: <Layers size={18} />, redirectUrl: "" },
+            { label: 'Products', icon: <Package size={18} />, redirectUrl: "/all-products" },
+            { label: 'Categories', icon: <Layers size={18} />, redirectUrl: "/all-categories" },
           ]} />
 
           <NavSection title="Transactions" items={[
-            { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "" },
-            { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "" },
+            { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "/all-sales" },
+            { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "/all-purchase" },
           ]} />
 
           <div className="mt-6 flex items-center space-x-2 cursor-pointer hover:text-orange-400 transition-colors">

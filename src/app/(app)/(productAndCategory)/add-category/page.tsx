@@ -1,7 +1,6 @@
 "use client"
 
 import { useForm } from 'react-hook-form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
@@ -64,11 +63,11 @@ const page = () => {
           <div className="mb-6 ml-2">
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Image
-                src="/8552125.png"
+                src="/category-icon-png-4.jpg"
                 alt="Add-product"
                 width={30}
                 height={30}
-                className="object-contain sm:h-[40px] sm:w-[40px]"
+                className="object-contain sm:h-[50px] sm:w-[50px]"
               />
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Categories</h1>

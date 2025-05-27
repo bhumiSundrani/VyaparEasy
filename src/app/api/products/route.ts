@@ -49,3 +49,26 @@ export async function POST(req: NextRequest){
         }, {status: 500})
     }
 }
+
+export async function GET(){
+    await dbConnect();
+    try {
+        const products = await ProductModel.find({})
+        if(!products){
+            return NextResponse.json({
+                success: false,
+                errors: ["No products found"]
+            }, {status: 404})
+        }
+        return NextResponse.json({
+            success: true,
+            message: "Products found successfully",
+            products
+        }, {status: 200})
+    } catch (error) {
+        return NextResponse.json({
+            success: false,
+            errors: ["Error fetching products"]
+        }, {status: 500})
+    }
+}

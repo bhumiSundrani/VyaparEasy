@@ -66,7 +66,7 @@ export async function GET(){
         if(!categories){
             return NextResponse.json({
                 success: false,
-                message: "Categories not found"
+                errors: ["Categories not found"]
             }, {status: 404})
         }
         return NextResponse.json({
@@ -78,7 +78,7 @@ export async function GET(){
         console.log("Error fetching categories: ", error)
         return NextResponse.json({
             success: false,
-            message: "Error fetching categories"
+            errors: ["Error fetching categories"]
         }, {status: 500})
     }
 }
