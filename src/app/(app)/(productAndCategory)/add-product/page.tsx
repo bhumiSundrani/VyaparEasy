@@ -32,6 +32,8 @@ interface ProductFormData {
 }
 
 const page = () => {
+  const [adding, setAdding] = useState(false)
+  const [close, setClosing] = useState(false)
   const router = useRouter()
   const form = useForm<ProductFormData>({
     defaultValues: {
@@ -41,10 +43,13 @@ const page = () => {
   });
 
   const onSubmit = async (data: ProductFormData) => {
+    setAdding(true)
     try {
       const res = await axios.post("/api/products", data);
       if (res.data.success) {
-        toast.success("Product added successfully");
+        toast.success("Product added successfully", {
+          icon: '✅',
+        });
         form.reset();
       }
     } catch (error) {
@@ -58,8 +63,12 @@ const page = () => {
           });
         });
       } else {
-        toast.error(axiosError.response?.data.message || "Something went wrong.");
+        toast.error(axiosError.response?.data.message || "Something went wrong.", {
+          icon: '❌',
+        });
       }
+    }finally{
+      setAdding(false)
     }
   };
 
@@ -233,10 +242,13 @@ const page = () => {
           </div>
 
           <div className="sm:flex items-center justify-center sm:space-x-4 space-y-2 sm:space-y-0">
-            <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]">
-              Add Product
+            <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={adding}>
+              {!adding ? "Add Product" : "Adding Product..."}
             </Button>
-            <Button onClick={() => router.back()} type="button" className="cursor-pointer bg-red-100 hover:bg-red-500 border-red-500 border-solid border-2 text-red-600 hover:text-white text-base sm:py-5 w-full sm:w-[200px]">Close</Button>
+            <Button onClick={() => {
+              setClosing(true)
+              router.back()
+              }} type="button" className="cursor-pointer bg-red-100 hover:bg-red-500 border-red-500 border-solid border-2 text-red-600 hover:text-white text-base sm:py-5 w-full sm:w-[200px]  disabled:bg-red-400 disabled:text-white" disabled={close}>{close ? "Closing..." : "Close"}</Button>
           </div>
         </form>
       </Form>

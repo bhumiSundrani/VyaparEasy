@@ -74,7 +74,7 @@ const SideBar: React.FC = () => {
         {/* Navigation Sections */}
         <div className="flex flex-col space-y-6">
           <NavSection title="Menu" items={[
-            { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "" },
+            { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "/dashboard"},
             { label: 'Analytics', icon: <BarChart2 size={18} />, redirectUrl: "" },
           ]} />
 
