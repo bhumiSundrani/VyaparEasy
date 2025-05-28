@@ -20,7 +20,8 @@ import SelectGroupedCategory from "@/components/SelectGroupedCategory";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-interface ProductFormData {
+export interface ProductFormData {
+  _id?: string;
   name: string;
   brand: string;
   category: string;
@@ -31,27 +32,37 @@ interface ProductFormData {
   currentStock: number;
 }
 
-const page = () => {
+const ProductForm = ({product}: {product: ProductFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [close, setClosing] = useState(false)
   const router = useRouter()
   const form = useForm<ProductFormData>({
     defaultValues: {
-      unit: "pcs",
-      lowStockThreshold: 10,
+      _id: product?._id || undefined,
+      name: product ? product.name : "",
+      brand: product ? product.brand : "",
+      category: product ? product.category : "",
+      unit: product ? product.unit : "pcs",
+      costPrice: product ? product.costPrice : 0,
+      sellingPrice: product ? product.sellingPrice : 0, 
+      lowStockThreshold: product ? product.lowStockThreshold : 10,
+      currentStock: product ? product.currentStock : 0,
     },
   });
 
   const onSubmit = async (data: ProductFormData) => {
     setAdding(true)
-    try {
-      const res = await axios.post("/api/products", data);
-      if (res.data.success) {
-        toast.success("Product added successfully", {
-          icon: '✅',
-        });
-        form.reset();
-      }
+    try {      
+        const res = await axios.post("/api/products", data);
+        if (res.data.success) {
+          toast.success(product ? "Product updated successfully" : "Product saved successfully", {
+            icon: '✅',
+          });
+          if (!product) {
+            form.reset();
+          } else {
+            router.push('/all-products');
+          }        }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       if (axiosError.response?.data?.errors) {
@@ -67,7 +78,7 @@ const page = () => {
           icon: '❌',
         });
       }
-    }finally{
+    } finally {
       setAdding(false)
     }
   };
@@ -86,7 +97,7 @@ const page = () => {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Products</h1>
             <p className="text-gray-600 text-xs sm:text-sm font-medium -mt-1">
-              Add New Product
+              { product ? "Edit Product" : "Add New Product"}
             </p>
           </div>
         </div>
@@ -136,6 +147,7 @@ const page = () => {
                     <SelectGroupedCategory
                       value={field.value}
                       onChange={(value: string) => field.onChange(value)}
+                      includeAllOption={false}
                     />
                   </FormControl>
                   <FormMessage />
@@ -243,7 +255,7 @@ const page = () => {
 
           <div className="sm:flex items-center justify-center sm:space-x-4 space-y-2 sm:space-y-0">
             <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={adding}>
-              {!adding ? "Add Product" : "Adding Product..."}
+              {product ? (adding ? "Updating Changes..." : "Update Product") : (adding ? "Adding Product..." : "Add Product")}
             </Button>
             <Button onClick={() => {
               setClosing(true)
@@ -256,4 +268,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default ProductForm;

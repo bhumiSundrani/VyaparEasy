@@ -17,8 +17,7 @@ const ProductSchema : Schema<Product> = new Schema({
     name: {
         type: String,
         required: true,
-        trim: true,
-        unique: true
+        trim: true
     },
     brand: {
         type: String,

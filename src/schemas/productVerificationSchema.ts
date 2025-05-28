@@ -2,6 +2,7 @@ import { z } from "zod";
 import { objectIdSchema } from "./categoryVerificationSchema"
 
 export const productVerificationSchema = z.object({
+    _id: z.string().nullable().optional(),
     name: z.string().nonempty("Add product name"),
     brand: z.string().nullable().optional(),
     category: objectIdSchema.nonempty("Select one"),

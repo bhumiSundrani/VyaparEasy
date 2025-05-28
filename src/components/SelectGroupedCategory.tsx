@@ -1,72 +1,103 @@
 "use client"
+
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { Category } from './SelectCategory'
 import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue
-  } from '@/components/ui/select'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
-const SelectGroupedCategory = ({value, onChange}: {value: string, onChange: (value: string) => void}) => {
-    const [categories, setCategories] = useState<Category[]>([])
-    useEffect(() => {
-        const fetchCategories = async () => {
-              try {
-                const res = await axios.get<{ categories: Category[] }>('/api/categories')
-                const allCategories = res.data.categories
-                setCategories(allCategories)
-              } catch (error) {
-                console.log("Error fetching categories: ", error)
-              }
-            }
-            fetchCategories()
-    }, [])
-    const grouped = categories.reduce((acc: any, cat) => {
-        if (!cat.parentCategory) {
-          acc[cat._id] = { ...cat, subcategories: [] };
-        } else {
-          const parentId = cat.parentCategory.toString();
-          if (!acc[parentId]) acc[parentId] = { subcategories: [] };
-          acc[parentId].subcategories.push(cat);
-        }
-        return acc;
-      }, {});
+interface CategoryOption {
+  _id: string
+  name: string
+  parentCategory?: string
+}
 
-      const getCategoryLabel = (value: string) => {
-        const category = categories.find(cat => cat._id === value)
-        return category?.name || "Select Category"
+interface SelectGroupedCategoryProps {
+  value: string
+  onChange: (value: string) => void
+  includeAllOption?: boolean
+}
+
+const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
+  value,
+  onChange,
+  includeAllOption = false,
+}) => {
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get<{ categories: CategoryOption[] }>('/api/categories')
+        setCategories(res.data.categories)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
       }
+    }
+
+    fetchCategories()
+  }, [])
+
+  const getCategoryLabel = (id: string): string => {
+    if (id === 'All categories') return 'All Categories'
+    
+    const category = categories.find(cat => cat._id === id)
+    if (!category) return 'Select Category'
+    
+    // If it's a subcategory, show "Parent > Child" format
+    if (category.parentCategory) {
+      const parent = categories.find(cat => cat._id === category.parentCategory)
+      return parent ? `${parent.name} > ${category.name}` : category.name
+    }
+    
+    return category.name
+  }
+
+  // Separate parent and child categories
+  const parentCategories = categories.filter(cat => !cat.parentCategory)
+  const childCategories = categories.filter(cat => cat.parentCategory)
 
   return (
-    <Select onValueChange={(val) => onChange(val)} value={value || undefined}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select Category" className='text-sm sm:text-base'>
-          {value ? getCategoryLabel(value) : "Select Category"}
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className="text-sm">
+        <SelectValue placeholder={includeAllOption ? 'All Categories' : 'Select Category'}>
+          {getCategoryLabel(value)}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-      {Object.values(grouped).map((cat: any) => (
-  <SelectGroup key={cat._id}>
-    <SelectItem className="px-2 pt-2" value={cat._id}>{cat.name}</SelectItem>
-    <div className="pl-4">
-      {cat.subcategories.map((sub: any) => (
-        <SelectItem
-          key={sub._id}
-          value={sub._id}
-          className="text-sm pl-4 border-l border-gray-200"
-        >
-          {sub.name}
-        </SelectItem>
-      ))}
-    </div>
-  </SelectGroup>
-))}
-  </SelectContent>
+        {includeAllOption && (
+          <SelectItem value="All categories">
+            All Categories
+          </SelectItem>
+        )}
+        
+        {/* Parent Categories */}
+        {parentCategories.map((parent) => (
+          <SelectItem key={parent._id} value={parent._id}>
+            {parent.name}
+          </SelectItem>
+        ))}
+        
+        {/* Child Categories with Parent > Child format */}
+        {childCategories.map((child) => {
+          const parent = categories.find(cat => cat._id === child.parentCategory)
+          return (
+            <div className='pl-4'>
+            <SelectItem 
+              key={child._id} 
+              value={child._id} 
+              className="pl-2 text-muted-foreground border-l-2 border-gray-200"
+            >
+              {parent ? `${parent.name} > ${child.name}` : child.name}
+            </SelectItem>
+            </div>
+          )
+        })}
+      </SelectContent>
     </Select>
   )
 }

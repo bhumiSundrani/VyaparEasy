@@ -9,53 +9,111 @@ import axios, { AxiosError } from 'axios'
 import { ApiResponse } from '@/types/ApiResponse'
 import SelectCategory from '@/components/SelectCategory'
 import Image from "next/image";
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { CategoryColumnData } from '@/tanstackColumns/categoryColumn';
 
-interface CategoryFormData {
-  name: string
-  parentCategory: string | null
+export interface CategoryFormData {
+  _id?: string;
+  name: string;
+  parentCategory: string | null;
 }
 
-const page = () => {
-  const [adding, setAdding] = useState(false)
-  const [close, setClosing] = useState(false)
-  const router = useRouter()
+const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) => {
+  const router = useRouter();
+  const params = useParams();
+  const { categoryId } = params;
+  const isEditing = !!categoryId;
+
+  const [loading, setLoading] = useState(isEditing);
+  const [submitting, setSubmitting] = useState(false);
+
   const form = useForm<CategoryFormData>({
     defaultValues: {
-      name: '',
-      parentCategory: null
+      name: category ? category.name : '',
+      parentCategory: category ? category.parentCategory : null,
     },
-  })
+  });
+
+  // Fetch category data if editing
+  useEffect(() => {
+    if (isEditing && categoryId) {
+      const fetchCategory = async () => {
+        try {
+          const res = await axios.get(`/api/categories/${categoryId}`);
+          if (res.data.success) {
+            const categoryData = res.data.category as CategoryColumnData;
+            form.reset({
+              _id: categoryData._id,
+              name: categoryData.name,
+              parentCategory: categoryData.parentCategory?._id || null,
+            });
+          } else {
+            toast.error(res.data.message || "Failed to fetch category data");
+            // Optionally redirect if category not found
+            // router.push('/all-categories');
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>;
+          toast.error(axiosError.response?.data.message || "Error fetching category data");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchCategory();
+    }
+  }, [isEditing, categoryId, form]);
 
   const onSubmit = async (data: CategoryFormData) => {
-    setAdding(true)
+    setSubmitting(true);
     try {
-      const res = await axios.post('/api/categories', data)
+      let res;
+      if (isEditing && data._id) {
+        // Edit existing category
+        res = await axios.put(`/api/categories/${data._id}`, data);
+      } else {
+        // Add new category
+        res = await axios.post('/api/categories', data);
+      }
+
       if (res.data.success) {
-        toast.success("Category Added successfully", {
+        toast.success(res.data.message || `Category ${isEditing ? 'updated' : 'added'} successfully`, {
           icon: '✅',
-        })
+        });
+        router.push('/all-categories');
+      } else {
+        // Handle server-side validation errors
+        if (res.data.errors) {
+          Object.entries(res.data.errors).forEach(([field, message]) => {
+            form.setError(field as keyof CategoryFormData, {
+              type: "server",
+              message: message as string,
+            });
+          });
+        } else {
+            toast.error(res.data.message || `Failed to ${isEditing ? 'update' : 'add'} category`, {
+              icon: '❌',
+            });
+        }
       }
     } catch (error) {
-      const axiosError = error as AxiosError<ApiResponse>
-      if (axiosError.response?.data?.errors) {
-        const errors = axiosError.response.data.errors;
-        Object.entries(errors).forEach(([field, message]) => {
-          form.setError(field as keyof CategoryFormData, {
-            type: "server",
-            message: message as string,
-          });
-        });
-      } else {
-        // fallback toast for unknown error
-        toast.error(axiosError.response?.data.message || "Something went wrong.", {
-          icon: '❌',
-        });
-      }
-    }finally{
-      setAdding(false)
+      const axiosError = error as AxiosError<ApiResponse>;
+      // Handle network errors or other unhandled errors
+      toast.error(axiosError.response?.data.message || `Error ${isEditing ? 'updating' : 'adding'} category`, {
+        icon: '❌',
+      });
+    } finally {
+      setSubmitting(false);
     }
+  };
+
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12 flex items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-[#ff9900]" />
+        </div>
+    );
   }
 
   return (
@@ -64,7 +122,7 @@ const page = () => {
             <div className="flex items-center space-x-1 sm:space-x-2">
               <Image
                 src="/category-icon-png-4.jpg"
-                alt="Add-product"
+                alt={isEditing ? "Edit-category" : "Add-category"}
                 width={30}
                 height={30}
                 className="object-contain sm:h-[50px] sm:w-[50px]"
@@ -72,7 +130,7 @@ const page = () => {
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Categories</h1>
                 <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                  Add New Category
+                  {isEditing ? "Edit Category" : "Add New Category"}
                 </p>
               </div>
             </div>
@@ -114,13 +172,13 @@ const page = () => {
               />
               </div>
               <div className="sm:flex items-center justify-center sm:space-x-4 space-y-2 sm:space-y-0">
-              <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={adding}>
-                {!adding ? "Add Category" : "Adding Category..."}
+              <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={submitting}>
+                {submitting ? <Loader2 height={20} width={20} className='animate-spin'/> : (isEditing ? "Update Category" : "Add Category")}
               </Button>
               <Button onClick={() => {
-                setClosing(true)
+                // setClosing(true) // No longer needed
                 router.back()
-                }} type="button" className="cursor-pointer bg-red-100 hover:bg-red-500 border-red-500 border-solid border-2 text-red-600 hover:text-white text-base sm:py-5 w-full sm:w-[200px] disabled:bg-red-400 disabled:text-white" disabled={close}>{close ? "Closing..." : "Close"}</Button>
+                }} type="button" className="cursor-pointer bg-red-100 hover:bg-red-500 border-red-500 border-solid border-2 text-red-600 hover:text-white text-base sm:py-5 w-full sm:w-[200px] disabled:bg-red-400 disabled:text-white">Close</Button>
           </div>
             </form>
           </Form>
@@ -128,4 +186,4 @@ const page = () => {
   )
 }
 
-export default page
+export default AddEditCategoryPage;
