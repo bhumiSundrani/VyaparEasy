@@ -58,11 +58,8 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
           toast.success(product ? "Product updated successfully" : "Product saved successfully", {
             icon: '✅',
           });
-          if (!product) {
-            form.reset();
-          } else {
             router.push('/all-products');
-          }        }
+          }       
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       if (axiosError.response?.data?.errors) {
