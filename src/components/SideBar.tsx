@@ -15,38 +15,53 @@ interface NavItem {
 interface NavSectionProps {
   title: string;
   items: NavItem[];
-  onItemClick?: () => void; // Add this
+  onItemClick?: (url: string) => void;
 }
 
 const NavSection: React.FC<NavSectionProps> = ({ title, items, onItemClick }) => {
-  const router = useRouter()
   return (
-  <div>
-    <p className="text-gray-400 uppercase text-xs font-semibold mb-2">{title}</p>
-    <ul className="space-y-2">
-      {items.map((item, index) => (
-        <li
-          key={index}
-          className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-800 p-2 rounded-md transition-all"
-          onClick={() =>{ 
-            router.replace(item.redirectUrl)
-            onItemClick?.();
-          }}
-        >
-          {item.icon}
-          <span>{item.label}</span>
-        </li>
-      ))}
-    </ul>
-  </div>
-)};
+    <div>
+      <p className="text-gray-400 uppercase text-xs font-semibold mb-2">{title}</p>
+      <ul className="space-y-2">
+        {items.map((item, index) => (
+          <li
+            key={index}
+            className="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-800 p-2 rounded-md transition-all"
+            onClick={() => onItemClick?.(item.redirectUrl)}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
 interface SideBarProps {
-  setPageLoading: () => void
+  setPageLoading: (loading: boolean) => void;
 }
 
 const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleNavigation = (url: string) => {
+    if (!url) return; // Skip if no URL provided
+    
+    const isMobile = window.innerWidth < 768;
+    
+    // Show loader only on desktop
+    if (!isMobile) {
+      setPageLoading(true);
+    }
+    
+    // Close mobile menu
+    setIsOpen(false);
+    
+    // Handle navigation
+    router.replace(url);
+  };
 
   return (
     <>
@@ -84,25 +99,19 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
             <NavSection
               title="Menu"
               items={[
-                { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "/dashboard" },
+                { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "" },
                 { label: 'Analytics', icon: <BarChart2 size={18} />, redirectUrl: "" },
               ]}
-              onItemClick={() => {
-                setPageLoading();
-                setIsOpen(false);
-              }}
+              onItemClick={handleNavigation}
             />
 
             <NavSection
               title="Quick Actions"
               items={[
-                { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "/add-sale" },
-                { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "/add-purchase" },
+                { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "" },
+                { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "" },
               ]}
-              onItemClick={() => {
-                setPageLoading();
-                setIsOpen(false);
-              }}
+              onItemClick={handleNavigation}
             />
 
             <NavSection
@@ -111,22 +120,16 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
                 { label: 'Products', icon: <Package size={18} />, redirectUrl: "/all-products" },
                 { label: 'Categories', icon: <Layers size={18} />, redirectUrl: "/all-categories" },
               ]}
-              onItemClick={() => {
-                setPageLoading();
-                setIsOpen(false);
-              }}
+              onItemClick={handleNavigation}
             />
 
             <NavSection
               title="Transactions"
               items={[
-                { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "/all-sales" },
-                { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "/all-purchase" },
+                { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "" },
+                { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "" },
               ]}
-              onItemClick={() => {
-                setPageLoading();
-                setIsOpen(false);
-              }}
+              onItemClick={handleNavigation}
             />
 
             <div className="mt-6 flex items-center space-x-2 cursor-pointer hover:text-orange-400 transition-colors">
@@ -146,6 +149,6 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
       )}
     </>
   );
-}
+};
 
 export default SideBar;

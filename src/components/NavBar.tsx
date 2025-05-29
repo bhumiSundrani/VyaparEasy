@@ -37,15 +37,15 @@ export default function Navbar() {
         {/* Optional: Notifications */}
         <button className="relative">
           <FiBell className="text-xl" />
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
+          {/* <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full"></span> */}
         </button>
 
         {/* User Info / Logout */}
         <div className="flex items-center gap-2">
           <span className="font-medium">Hi, {user?.name}</span>
-          <button onClick={handleLogout} className="text-red-600 hover:underline">
+          <abbr title="Logout" onClick={handleLogout} className="text-red-600 hover:bg-red-100 transition-all rounded-full p-2 cursor-pointer">
             <FiLogOut />
-          </button>
+          </abbr>
         </div>
       </div>
     </header>
