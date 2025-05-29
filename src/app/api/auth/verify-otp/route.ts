@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
 
             const response = NextResponse.json({
                 success: true,
-                message: "OTP verified"
+                message: "OTP verified",
+                user: existingUser
             }, { status: 200 });
 
             response.headers.set("Set-Cookie", cookie);
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "OTP verified"
+            message: "OTP verified",
         }, { status: 200 });
 
     } catch (error) {

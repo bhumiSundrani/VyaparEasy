@@ -8,12 +8,14 @@ import { useParams, useRouter  } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { MdEdit } from "react-icons/md";
+import Loader from '@/components/Loader'
 
 export default function Page() {
   const [mounted, setMounted] = useState(false)
   const params = useParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(false)
 
   const phone : string = params.phone as string
 
@@ -43,9 +45,11 @@ export default function Page() {
           // Check if we have a valid user object
           if (userResponse.data.success && userResponse.data.user && Object.keys(userResponse.data.user).length > 0) {
             console.log("User already exists with data:", userResponse.data.user)
+            setPageLoading(true)
             router.replace('/')
           } else {
             console.log("No existing user found, redirecting to signup")
+            setPageLoading(true)
             router.replace(`/verify-user/sign-up/${phone}`)
           }
         } catch (error) {
@@ -53,11 +57,13 @@ export default function Page() {
           console.log('Error details:', axiosError.response?.data) // Debug log
           if (axiosError.response?.status === 401 || axiosError.response?.status === 404) {
             console.log("Unauthorized - No token found")
+            setPageLoading(true)
             router.replace(`/verify-user/sign-up/${phone}`)
           } else {
             toast.error("Something went wrong while fetching user data", {
               icon: '❌',
             })
+            setPageLoading(true)
             router.replace(`/verify-user/sign-up/${phone}`)
           }
         }
@@ -81,6 +87,8 @@ export default function Page() {
   }
 
   if(!mounted) return null
+
+  if(pageLoading) return <Loader/>
 
   return (
     <div className="bg-gradient-to-br from-[#0f172a] to-[#1e293b] min-h-screen flex items-center justify-center px-2 py-4 overflow-hidden">

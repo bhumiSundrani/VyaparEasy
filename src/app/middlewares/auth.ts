@@ -1,7 +1,7 @@
 import { verifyToken } from "@/lib/jwtTokenManagement"
 import { NextRequest, NextResponse } from "next/server"
 
-export function authMiddleware(request: NextRequest) {
+export async function authMiddleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
   const pathname = request.nextUrl.pathname
 
@@ -13,7 +13,8 @@ export function authMiddleware(request: NextRequest) {
   }
 
   try {
-    const user = verifyToken(token)
+    const user = await verifyToken(token)
+    console.log(user)
     return NextResponse.next()
   } catch (error) {
     if (pathname.startsWith('/verify-user')) {

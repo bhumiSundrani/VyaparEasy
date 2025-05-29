@@ -1,6 +1,12 @@
+import { JWTToken } from "@/lib/jwtTokenManagement";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
+interface SliceType{
+    user: JWTToken | null;
+    isAuthenticated: boolean
+}
+
+const initialState : SliceType = {
     user: null,
     isAuthenticated: false
 }

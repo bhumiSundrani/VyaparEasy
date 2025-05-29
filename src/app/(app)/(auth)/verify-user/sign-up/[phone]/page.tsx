@@ -10,9 +10,8 @@ import { toast } from 'sonner'
 import axios, { AxiosError } from 'axios'
 import { ApiResponse } from '@/types/ApiResponse'
 import SelectLanguage from '@/components/SelectLanguage'
-import { useDispatch } from 'react-redux'
-import { setUser } from '@/app/store/slices/authSlice'
 import { useState } from 'react'
+import Loader from '@/components/Loader'
 
 export interface SignUpFormData {
   name: string
@@ -24,7 +23,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const { phone } = useParams() as { phone: string }
   const router = useRouter()
-  const dispatch = useDispatch()
+  const [pageLoading, setPageLoading] = useState(false)
 
   const form = useForm<SignUpFormData>({
     defaultValues: {
@@ -69,16 +68,8 @@ export default function SignUpPage() {
         toast.success('Account created successfully!', {
           icon: '✅',
         })
-        try {
-          const res = await axios.get('/api/auth/get-user')
-          if (res.data && res.data.user) {
-            dispatch(setUser(res.data.user))
-          }
-        } catch (error) {
-          const axiosError = error as AxiosError<ApiResponse>
-          console.log("Error fetching user: ", axiosError)
-        }
-        router.replace('/dashboard')
+        setPageLoading(true)
+        router.replace('/')
       } else {
         toast.error(response.data.message || 'Signup failed.', {
           icon: '❌',
@@ -93,6 +84,8 @@ export default function SignUpPage() {
       setLoading(false)
     }
   }
+
+  if(pageLoading) return <Loader/>
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] to-[#1e293b] px-4">

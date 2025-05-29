@@ -57,7 +57,8 @@ export async function POST(req: NextRequest){
         const cookie = `token=${token}; HttpOnly; SameSite=Strict; Max-Age=${7 * 24 * 60 * 60}; Path=/; Secure=${process.env.NODE_ENV === 'production' ? 'true' : 'false'}`;
         const response =  NextResponse.json({
             success: true,
-            message: "user registered successfully"
+            message: "user registered successfully",
+            user: newUser
         }, {status: 201})
         response.headers.set('Set-Cookie', cookie);
         return response;

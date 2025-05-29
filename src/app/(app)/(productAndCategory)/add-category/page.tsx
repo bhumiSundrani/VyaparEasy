@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { CategoryColumnData } from '@/tanstackColumns/categoryColumn';
+import Loader from '@/components/Loader'
 
 export interface CategoryFormData {
   _id?: string;
@@ -23,6 +24,7 @@ export interface CategoryFormData {
 const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) => {
   const router = useRouter();
   const params = useParams();
+  const [pageLoading, setPageLoading] = useState(false)
   const { categoryId } = params;
   const isEditing = !!categoryId;
 
@@ -81,6 +83,7 @@ const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) =>
         toast.success(res.data.message || `Category ${isEditing ? 'updated' : 'added'} successfully`, {
           icon: '✅',
         });
+        setLoading(true)
         router.push('/all-categories');
       } else {
         // Handle server-side validation errors
@@ -108,11 +111,9 @@ const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) =>
     }
   };
 
-  if (loading) {
+  if (pageLoading) {
     return (
-        <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12 flex items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-[#ff9900]" />
-        </div>
+        <Loader/>
     );
   }
 

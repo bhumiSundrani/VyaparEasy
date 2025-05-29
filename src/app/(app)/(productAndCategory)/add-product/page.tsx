@@ -19,6 +19,7 @@ import SelectUnit from "@/components/SelectUnit";
 import SelectGroupedCategory from "@/components/SelectGroupedCategory";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader";
 
 export interface ProductFormData {
   _id?: string;
@@ -35,6 +36,7 @@ export interface ProductFormData {
 const ProductForm = ({product}: {product: ProductFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [close, setClosing] = useState(false)
+  const [pageLoading, setPageLoading] = useState(false)
   const router = useRouter()
   const form = useForm<ProductFormData>({
     defaultValues: {
@@ -58,6 +60,7 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
           toast.success(product ? "Product updated successfully" : "Product saved successfully", {
             icon: '✅',
           });
+          setPageLoading(true)
             router.push('/all-products');
           }       
     } catch (error) {
@@ -79,6 +82,8 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
       setAdding(false)
     }
   };
+
+  if(pageLoading) return <Loader/>
 
   return (
     <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12">
