@@ -1,5 +1,4 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
-import { string } from 'zod';
 
 export interface Product extends Document{
     name: string;

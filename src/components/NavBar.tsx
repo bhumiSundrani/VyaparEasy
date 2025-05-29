@@ -14,7 +14,7 @@ export default function Navbar() {
       axios.post('/api/auth/logout')
       router.push('/verify-user');
     } catch (error) {
-      console.log("Error logging out user")
+      console.log("Error logging out user", error)
     }
   };
 

@@ -21,6 +21,7 @@ export async function GET(){
         try {
             decodedToken = verifyToken(token)
         } catch (err) {
+            console.log(err)
             return NextResponse.json({
                 success: false,
                 message: "Invalid or expired token",

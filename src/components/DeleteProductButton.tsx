@@ -12,12 +12,9 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
 export function DeleteProductButton({ onDelete }: { onDelete: () => Promise<void> }) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter()
-
   const handleDelete = async () => {
     setIsDeleting(true);
     await onDelete();

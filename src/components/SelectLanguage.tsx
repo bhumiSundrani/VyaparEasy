@@ -1,5 +1,5 @@
 import React from 'react'
-import { Controller } from 'react-hook-form'
+import { Control, Controller } from 'react-hook-form'
 import {
   Select,
   SelectContent,
@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { SignUpFormData } from '@/app/(app)/(auth)/verify-user/sign-up/[phone]/page'
 
 
 const getLanguageLabel = (value: string) => {
@@ -23,8 +24,11 @@ const getLanguageLabel = (value: string) => {
   return labels[value] || "Select your language"
 }
 
+interface SelectLanguageProps {
+  control: Control<SignUpFormData>;  // You can replace 'any' with your form data type
+}
 
-const SelectLanguage = ({control}: any) => {
+const SelectLanguage: React.FC<SelectLanguageProps>  = ({control}) => {
   return (
     <Controller 
         name='preferredLanguage'

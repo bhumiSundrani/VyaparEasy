@@ -2,13 +2,12 @@ import dbConnect from "@/lib/dbConnect";
 import ProductModel from "@/models/Product.model";
 import { NextRequest, NextResponse } from "next/server";
 
-
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await dbConnect();
-  const { id } = context.params;
+  const { id } = await params;
 
   try {
     const product = await ProductModel.findById(id);
@@ -45,22 +44,23 @@ export async function GET(
 }
 
 export async function DELETE(
-    req: NextRequest,
-    context: {params: {id: string}}
-){
-    await dbConnect();
-    const {id} = context.params
-    try {
-        await ProductModel.findByIdAndDelete(id)
-        return NextResponse.json(
-        {
-            success: true,
-            message: "Product deleted successfully",
-        },
-        { status: 200 }
-        );
-    } catch (error) {
-        console.error("Error deleting product:", error);
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  await dbConnect();
+  const { id } = await params;
+  
+  try {
+    await ProductModel.findByIdAndDelete(id);
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Product deleted successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting product:", error);
     return NextResponse.json(
       {
         success: false,
@@ -69,5 +69,5 @@ export async function DELETE(
       },
       { status: 500 }
     );
-    }
+  }
 }

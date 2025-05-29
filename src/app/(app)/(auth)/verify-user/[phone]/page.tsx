@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { MdEdit } from "react-icons/md";
 
-export default function OTPVerifyPage() {
+export default function Page() {
   const [mounted, setMounted] = useState(false)
   const params = useParams()
   const router = useRouter()

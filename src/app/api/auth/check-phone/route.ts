@@ -19,7 +19,6 @@ export async function GET(req: NextRequest){
                 message: phoneError?.length > 0 ? phoneError.join(", ") : "Invalid query parameters"
             }, {status: 400})
         }
-        const {phone} = res.data
         return NextResponse.json({
             success: true,
             message: "Phone number is valid"

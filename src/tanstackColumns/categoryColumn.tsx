@@ -19,6 +19,39 @@ export interface CategoryColumnData {
   slug: string;
 }
 
+// Create a separate React component for the mobile card cell
+const MobileCardCell: React.FC<{ category: CategoryColumnData; onCategoryDeleted: () => void }> = ({ category, onCategoryDeleted }) => {
+  const router = useRouter();
+  const [editDisabled, setEditDisabled] = useState(false);
+
+  const handleEdit = () => {
+    setEditDisabled(true);
+    router.push(`/all-categories/${category._id}/edit`);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`/api/categories/${category._id}`);
+      toast.success("Category deleted successfully", { icon: "✅" });
+      onCategoryDeleted();
+    } catch {
+      toast.error("Error deleting category", { icon: "❌" });
+    }
+  };
+
+  return (
+    <div className="md:hidden w-full md:-mx-4">
+      <MobileCategoryCard
+        category={category}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        editDisabled={editDisabled}
+      />
+    </div>
+  );
+};
+
+
 // Mobile Card Component for Categories
 const MobileCategoryCard = ({ category, onEdit, onDelete, editDisabled }: {
   category: CategoryColumnData;
@@ -80,48 +113,49 @@ const MobileCategoryCard = ({ category, onEdit, onDelete, editDisabled }: {
   );
 };
 
-export const categoryColumns = (handleCategoryDeleted: () => void): ColumnDef<CategoryColumnData>[] => [
+const ActionsCell: React.FC<{ category: CategoryColumnData; onCategoryDeleted: () => void }> = ({ category, onCategoryDeleted }) => {
+  const router = useRouter();
+  const [editDisabled, setEditDisabled] = useState(false);
+
+  const handleDeleteCategory = async () => {
+    try {
+      await axios.delete(`/api/categories/${category._id}`);
+      toast.success("Category deleted successfully", { icon: "✅" });
+      onCategoryDeleted();
+    } catch {
+      toast.error("Error deleting category", { icon: "❌" });
+    }
+  };
+
+  return (
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={editDisabled}
+        onClick={() => {
+          setEditDisabled(true);
+          router.push(`/all-categories/${category._id}/edit`);
+        }}
+        className="h-9 px-3 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+      >
+        {editDisabled ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Edit className="h-3 w-3 mr-1.5" />Edit</>}
+      </Button>
+
+      <DeleteProductButton onDelete={handleDeleteCategory} />
+    </div>
+  );
+};
+
+
+export const CategoryColumns = (handleCategoryDeleted: () => void): ColumnDef<CategoryColumnData>[] => [
   // Mobile-first: Single column that renders cards on mobile, hidden on desktop
   {
-    id: "mobile-card",
-    header: () => null,
-    cell: ({ row }) => {
-      const router = useRouter();
-      const category = row.original;
-      const [editDisabled, setEditDisabled] = useState(false);
-
-      const handleEdit = () => {
-        setEditDisabled(true);
-        router.push(`/all-categories/${category._id}/edit`);
-      };
-
-      const handleDelete = async () => {
-        try {
-          await axios.delete(`/api/categories/${category._id}`);
-          toast.success("Category deleted successfully", {
-            icon: '✅',
-          });
-          handleCategoryDeleted(); // Call the callback to refresh data
-        } catch (error) {
-          toast.error("Error deleting category", {
-            icon: '❌',
-          });
-        }
-      };
-
-      return (
-        <div className="md:hidden w-full md:-mx-4">
-          <MobileCategoryCard 
-            category={category}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            editDisabled={editDisabled}
-          />
-        </div>
-      );
-    },
-    enableSorting: false,
-  },
+  id: "mobile-card",
+  header: () => null,
+  cell: ({ row }) => <MobileCardCell category={row.original} onCategoryDeleted={handleCategoryDeleted} />,
+  enableSorting: false,
+},
   {
     id: "serial",
     header: () => <span className="font-semibold text-gray-700">#</span>,
@@ -180,54 +214,11 @@ export const categoryColumns = (handleCategoryDeleted: () => void): ColumnDef<Ca
     },
   },
   {
-    id: "actions",
-    header: () => <span className="font-semibold text-gray-700">Actions</span>,
-    size: 160,
-    cell: ({ row }) => {
-      const router = useRouter();
-      const category = row.original;
-      const [editDisabled, setEditDisabled] = useState(false);
-      
-      const handleDeleteCategory = async () => {
-        try {
-          await axios.delete(`/api/categories/${category._id}`);
-          toast.success("Category deleted successfully", {
-            icon: '✅',
-          });
-          handleCategoryDeleted(); // Call the callback to refresh data
-        } catch (error) {
-          toast.error("Error deleting category", {
-            icon: '❌',
-          });
-        }
-      };
-      
-      return (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={editDisabled}
-            onClick={() => {
-              setEditDisabled(true);
-              router.push(`/all-categories/${category._id}/edit`);
-            }}
-            className="h-9 px-3 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
-          >
-            {editDisabled ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <>
-                <Edit className="h-3 w-3 mr-1.5" />
-                Edit
-              </>
-            )}
-          </Button>
-          
-          <DeleteProductButton onDelete={handleDeleteCategory} />
-        </div>
-      );
-    },
-    enableSorting: false,
-  },
+  id: "actions",
+  header: () => <span className="font-semibold text-gray-700">Actions</span>,
+  size: 160,
+  cell: ({ row }) => <ActionsCell category={row.original} onCategoryDeleted={handleCategoryDeleted} />,
+  enableSorting: false,
+}
+
 ]; 

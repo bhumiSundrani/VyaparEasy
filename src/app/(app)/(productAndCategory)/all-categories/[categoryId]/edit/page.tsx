@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import axios from "axios";
 import AddEditCategoryPage, { CategoryFormData } from "../../../add-category/page";
 
-interface PageProps {
-  params: {
+// Fix: params should be a Promise
+type PageProps = {
+  params: Promise<{
     categoryId: string;
-  };
+  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const fetchCategory = async (categoryId: string): Promise<CategoryFormData | null> => {
@@ -19,14 +21,14 @@ const fetchCategory = async (categoryId: string): Promise<CategoryFormData | nul
 };
 
 export default async function Page({ params }: PageProps) {
-  const { categoryId } = params;
+  const { categoryId } = await params;
 
-  let category : CategoryFormData | null = null;
+  let category: CategoryFormData | null = null;
 
   if (categoryId !== "new") {
     category = await fetchCategory(categoryId);
-    if (!category) return notFound(); // show 404 if product doesn't exist
+    if (!category) return notFound(); // show 404 if category doesn't exist
   }
 
-  return <AddEditCategoryPage category={category} />; // Pass the product data as a prop
-} 
+  return <AddEditCategoryPage category={category} />; // Pass the category data as a prop
+}

@@ -3,10 +3,11 @@ import ProductForm from "../../../add-product/page";
 import { ProductFormData } from "../../../add-product/page";
 import axios from "axios";
 
-interface PageProps {
-  params: {
+type PageProps = {
+  params: Promise<{
     id: string;
-  };
+  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const fetchProduct = async (id: string): Promise<ProductFormData | null> => {
@@ -20,7 +21,7 @@ const fetchProduct = async (id: string): Promise<ProductFormData | null> => {
 };
 
 export default async function Page({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
 
   let product: ProductFormData | null = null;
 

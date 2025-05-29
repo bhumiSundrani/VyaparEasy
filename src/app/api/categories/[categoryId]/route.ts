@@ -18,7 +18,9 @@ export async function DELETE(request: Request, {params}: {params: Promise<{categ
                 success: false,
                 message: "Invalid category ID"
             }, {status: 400});
-        }        // Check if category exists
+        }        
+        
+        // Check if category exists
         const category = await CategoryModel.findById(categoryId);
         if (!category) {
             return NextResponse.json({
@@ -60,10 +62,10 @@ export async function DELETE(request: Request, {params}: {params: Promise<{categ
     }
 }
 
-export async function GET(req: NextRequest, {params}: {params: {categoryId: string}}) {
+export async function GET(req: NextRequest, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
-        const categoryId = params.categoryId;
+        const { categoryId } = await params;
         const parsedId = objectIdSchema.safeParse(categoryId);
 
         if(!parsedId.success){
@@ -95,10 +97,10 @@ export async function GET(req: NextRequest, {params}: {params: {categoryId: stri
     }
 }
 
-export async function PUT(req: NextRequest, {params}: {params: {categoryId: string}}) {
+export async function PUT(req: NextRequest, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
-        const categoryId = params.categoryId;
+        const { categoryId } = await params;
         const body = await req.json();
         const parsedBody = categoryVerificationSchema.safeParse(body);
 
@@ -141,4 +143,4 @@ export async function PUT(req: NextRequest, {params}: {params: {categoryId: stri
             message: "Error updating category"
         }, { status: 500 });
     }
-} 
+}

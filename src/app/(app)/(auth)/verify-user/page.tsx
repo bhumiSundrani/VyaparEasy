@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,15 +9,15 @@ import axios, { AxiosError } from 'axios'
 import { ApiResponse } from '@/types/ApiResponse'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function VerifyUserPage() {
-  // All hooks must be called at the top level, before any conditionals
+// Create a separate component that uses useSearchParams
+function VerifyUserContent() {
   const [mounted, setMounted] = useState(false)
   const [phoneNo, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   // Mark component as mounted (client-side)
   useEffect(() => {
     setMounted(true)
@@ -75,7 +75,7 @@ export default function VerifyUserPage() {
       <Card className="w-full max-w-md shadow-xl sm:py-6 rounded-2xl sm:px-4">
         <CardHeader className="px-4 pt-4">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-center">
-            Let's Verify Your Phone
+            Let&apos;s Verify Your Phone
           </CardTitle>
         </CardHeader>
 
@@ -83,6 +83,8 @@ export default function VerifyUserPage() {
           <img
             src="/assets_task_01jt5kgxyhf59svhbkpq1x7j3t_1746092517_img_0.PNG"
             alt="Verify Illustration"
+            width={200}
+            height={160}
             className="h-40 w-auto object-contain sm:h-48"
           />
         </div>
@@ -130,5 +132,23 @@ export default function VerifyUserPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="bg-gradient-to-br from-[#0f172a] to-[#1e293b] min-h-screen flex items-center justify-center">
+      <div className="text-white">Loading...</div>
+    </div>
+  )
+}
+
+// Main component wrapped with Suspense
+export default function VerifyUserPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyUserContent />
+    </Suspense>
   )
 }

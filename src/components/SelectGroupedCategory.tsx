@@ -86,7 +86,7 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
         {childCategories.map((child) => {
           const parent = categories.find(cat => cat._id === child.parentCategory)
           return (
-            <div className='pl-4'>
+            <div className='pl-4' key={child._id}>
             <SelectItem 
               key={child._id} 
               value={child._id} 

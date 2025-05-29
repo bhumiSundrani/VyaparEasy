@@ -2,11 +2,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Loader2, Edit, Trash2, MoreVertical, Star, TrendingUp, Package } from "lucide-react"
+import { Loader2, Edit} from "lucide-react"
 import { DeleteProductButton } from "@/components/DeleteProductButton";
 import axios from "axios";
 import { toast } from "sonner";
+import React from "react";
 
 
 export interface ProductColumnData {
@@ -27,7 +27,7 @@ export interface ProductColumnData {
 
 
 // Enhanced Mobile Card Component with better styling
-const MobileProductCard = ({ product, onEdit, onDelete, editDisabled, deleteDisabled }: {
+const MobileProductCard = ({ product, onEdit, onDelete, editDisabled}: {
   product: ProductColumnData;
   onEdit: () => void;
   onDelete: () => Promise<void>;
@@ -141,55 +141,117 @@ const MobileProductCard = ({ product, onEdit, onDelete, editDisabled, deleteDisa
   );
 };
 
+interface MobileCardCellProps {
+  product: ProductColumnData;
+  handleProductDeleted: () => void;
+}
+
+const MobileCardCell: React.FC<MobileCardCellProps> = ({ product, handleProductDeleted }) => {
+  const router = useRouter();
+  const [editDisabled, setEditDisabled] = React.useState(false);
+  const [deleteDisabled, setDeleteDisabled] = React.useState(false);
+
+  const handleEdit = () => {
+    setEditDisabled(true);
+    router.push(`/all-products/${product._id}/edit`);
+  };
+
+  const handleDelete = async () => {
+    try {
+      setDeleteDisabled(true);
+      await axios.delete(`/api/products/${product._id}`);
+      toast.success("Product deleted successfully", {
+        icon: "✅",
+      });
+      handleProductDeleted();
+    } catch (error) {
+      console.log(error)
+      toast.error("Error deleting product", {
+        icon: "❌",
+      });
+    } finally {
+      setDeleteDisabled(false);
+    }
+  };
+
+  return (
+    <div className="md:hidden w-full md:-mx-4">
+      <MobileProductCard
+        product={product}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        editDisabled={editDisabled}
+        deleteDisabled={deleteDisabled}
+      />
+    </div>
+  );
+};
+
+
+interface DesktopActionsCellProps {
+  product: ProductColumnData;
+  handleProductDeleted: () => void;
+}
+
+const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ product, handleProductDeleted }) => {
+  const router = useRouter();
+  const [editDisabled, setEditDisabled] = React.useState(false);
+
+  const handleDeleteProduct = async () => {
+    try {
+      await axios.delete(`/api/products/${product._id}`);
+      toast.success("Product deleted successfully", {
+        icon: "✅",
+      });
+      handleProductDeleted();
+    } catch (error) {
+      console.log(error)
+      toast.error("Error deleting product", {
+        icon: "❌",
+      });
+    }
+  };
+
+  return (
+    <div className="hidden md:flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={editDisabled}
+        onClick={() => {
+          setEditDisabled(true);
+          router.push(`/all-products/${product._id}/edit`);
+        }}
+        className="h-9 px-3 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+      >
+        {editDisabled ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <>
+            <Edit className="h-3 w-3 mr-1.5" />
+            Edit
+          </>
+        )}
+      </Button>
+
+      <DeleteProductButton onDelete={handleDeleteProduct} />
+    </div>
+  );
+};
+
+
 // Convert productColumns to a function that accepts handleProductDeleted callback
-export const productColumns = (handleProductDeleted: () => void): ColumnDef<ProductColumnData>[] => [
+export const ProductColumns = (handleProductDeleted: () => void): ColumnDef<ProductColumnData>[] => [
   // Mobile-first: Single column that renders cards on mobile, hidden on desktop
   {
     id: "mobile-card",
     header: () => null,
     cell: ({ row }) => {
-      const router = useRouter();
       const product = row.original;
-      const [editDisabled, setEditDisabled] = useState(false);
-      const [deleteDisabled, setDeleteDisabled] = useState(false);
-
-      const handleEdit = () => {
-        setEditDisabled(true);
-        router.push(`/all-products/${product._id}/edit`);
-      };
-
-      const handleDelete = async () => {
-        try {
-          setDeleteDisabled(true);
-          await axios.delete(`/api/products/${product._id}`);
-          toast.success("Product deleted successfully", {
-            icon: '✅',
-          });
-          handleProductDeleted(); // Call the callback to refresh data
-        } catch (error) {
-          toast.error("Error deleting product", {
-            icon: '❌',
-          });
-        } finally {
-          setDeleteDisabled(false);
-        }
-      };
-
-      return (
-        <div className="md:hidden w-full md:-mx-4">
-          <MobileProductCard 
-            product={product}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            editDisabled={editDisabled}
-            deleteDisabled={deleteDisabled}
-          />
-        </div>
-      );
+      return <MobileCardCell product={product} handleProductDeleted={handleProductDeleted} />;
     },
     enableSorting: false,
   },
-
   // Desktop columns - enhanced styling
   {
     id: "serial",
@@ -337,49 +399,8 @@ export const productColumns = (handleProductDeleted: () => void): ColumnDef<Prod
     header: () => <span className="hidden md:block font-semibold text-gray-700">Actions</span>,
     size: 160,
     cell: ({ row }) => {
-      const router = useRouter();
       const product = row.original;
-      const [editDisabled, setEditDisabled] = useState(false);
-      
-      const handleDeleteProduct = async () => {
-        try {
-          await axios.delete(`/api/products/${product._id}`);
-          toast.success("Product deleted successfully", {
-            icon: '✅',
-          });
-          handleProductDeleted(); // Call the callback to refresh data
-        } catch (error) {
-          toast.error("Error deleting product", {
-            icon: '❌',
-          });
-        }
-      };
-      
-      return (
-        <div className="hidden md:flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={editDisabled}
-            onClick={() => {
-              setEditDisabled(true);
-              router.push(`/all-products/${product._id}/edit`);
-            }}
-            className="h-9 px-3 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
-          >
-            {editDisabled ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <>
-                <Edit className="h-3 w-3 mr-1.5" />
-                Edit
-              </>
-            )}
-          </Button>
-          
-          <DeleteProductButton onDelete={handleDeleteProduct} />
-        </div>
-      );
+      return <DesktopActionsCell product={product} handleProductDeleted={handleProductDeleted} />;
     },
     enableSorting: false,
   },

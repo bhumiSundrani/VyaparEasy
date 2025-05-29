@@ -7,10 +7,10 @@ import axios, { AxiosError } from 'axios'
 import { ApiResponse } from '@/types/ApiResponse'
 import { Input } from '@/components/ui/input'
 import { Loader2, Search } from 'lucide-react'
-import { CategoryColumnData, categoryColumns } from '@/tanstackColumns/categoryColumn'
+import { CategoryColumnData, CategoryColumns } from '@/tanstackColumns/categoryColumn'
 import { DataTable } from '@/components/DataTable'
 
-const page = () => {
+const Page = () => {
     const router = useRouter()
     const [categories, setCategories] = useState<CategoryColumnData[]>([])
     const [loading, setLoading] = useState(true)
@@ -123,7 +123,7 @@ const page = () => {
 
             <div className="mt-4">
                 <DataTable 
-                    columns={categoryColumns(handleCategoryDeleted)} 
+                    columns={CategoryColumns(handleCategoryDeleted)} 
                     data={filteredCategories}
                     loading={loading}
                     emptyStateMessage="No categories found"
@@ -134,4 +134,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page

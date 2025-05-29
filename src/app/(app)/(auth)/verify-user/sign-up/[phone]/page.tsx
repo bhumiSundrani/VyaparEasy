@@ -14,7 +14,7 @@ import { useDispatch } from 'react-redux'
 import { setUser } from '@/app/store/slices/authSlice'
 import { useState } from 'react'
 
-interface SignUpFormData {
+export interface SignUpFormData {
   name: string
   shopName: string
   preferredLanguage: string
@@ -153,13 +153,12 @@ export default function SignUpPage() {
               <FormField
                 control={form.control}
                 name="preferredLanguage"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel>Preferred Language</FormLabel>
                     <FormControl>
                       <SelectLanguage
-                        value={field.value}
-                        onChange={(value: string) => field.onChange(value)}
+                        control={form.control}
                       />
                     </FormControl>
                     <FormMessage />

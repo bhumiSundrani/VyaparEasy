@@ -9,10 +9,10 @@ import { ApiResponse } from '@/types/ApiResponse'
 import SelectStatus from '@/components/SelectStatus'
 import { Input } from '@/components/ui/input'
 import { Loader2, Search } from 'lucide-react'
-import { ProductColumnData, productColumns } from '@/tanstackColumns/productColumn'
+import { ProductColumnData, ProductColumns } from '@/tanstackColumns/productColumn'
 import { DataTable } from '@/components/DataTable'
 
-const page = () => {
+const Page = () => {
     const router = useRouter()
     const [selectedCategory, setSelectedCategory] = useState<string>("All categories")
     const [products, setProducts] = useState<ProductColumnData[]>([])
@@ -153,7 +153,7 @@ const page = () => {
 
             <div className="mt-4">
                 <DataTable 
-                    columns={productColumns(handleProductDeleted)} 
+                    columns={ProductColumns(handleProductDeleted)} 
                     data={filteredProducts}
                     loading={loading}
                 />
@@ -162,4 +162,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page
