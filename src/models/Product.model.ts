@@ -10,6 +10,7 @@ export interface Product extends Document{
     lowStockThreshold: number;
     currentStock: number;
     imageUrl: string | null;
+    user: Types.ObjectId;
 }
 
 const ProductSchema : Schema<Product> = new Schema({
@@ -54,6 +55,11 @@ const ProductSchema : Schema<Product> = new Schema({
     },
     imageUrl: {
         type: String
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     }
 }, {timestamps: true})
 

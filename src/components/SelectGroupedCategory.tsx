@@ -45,21 +45,22 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
   const getCategoryLabel = (id: string): string => {
     if (id === 'All categories') return 'All Categories'
     
-    const category = categories.find(cat => cat._id === id)
+    const category = categories.find(cat => cat._id.toString() === id.toString())
     if (!category) return 'Select Category'
     
-    // If it's a subcategory, show "Parent > Child" format
+    // If it's a subcategory, show "Parent > Child" format in the trigger value
     if (category.parentCategory) {
-      const parent = categories.find(cat => cat._id === category.parentCategory)
+      const parent = categories.find(cat => cat._id.toString() === category.parentCategory?.toString())
       return parent ? `${parent.name} > ${category.name}` : category.name
     }
     
     return category.name
   }
 
-  // Separate parent and child categories
+  // Separate parent and child categories and sort them
   const parentCategories = categories.filter(cat => !cat.parentCategory)
   const childCategories = categories.filter(cat => cat.parentCategory)
+
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -75,28 +76,35 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
           </SelectItem>
         )}
         
-        {/* Parent Categories */}
+        {/* Render parent categories and their children immediately after */}
         {parentCategories.map((parent) => (
-          <SelectItem key={parent._id} value={parent._id}>
-            {parent.name}
-          </SelectItem>
-        ))}
-        
-        {/* Child Categories with Parent > Child format */}
-        {childCategories.map((child) => {
-          const parent = categories.find(cat => cat._id === child.parentCategory)
-          return (
-            <div className='pl-4' key={child._id}>
-            <SelectItem 
-              key={child._id} 
-              value={child._id} 
-              className="pl-2 text-muted-foreground border-l-2 border-gray-200"
-            >
-              {parent ? `${parent.name} > ${child.name}` : child.name}
+          <React.Fragment key={parent._id}>
+            {/* Parent Item */}
+            <SelectItem value={parent._id}>
+              {parent.name}
             </SelectItem>
-            </div>
-          )
-        })}
+
+            {/* Children of this parent */}
+            {childCategories
+              .filter((child) => child.parentCategory === parent._id)
+              .map((child) => (
+                <SelectItem
+                  key={child._id}
+                  value={child._id}
+                  className="pl-6 text-muted-foreground border-l-2 border-gray-200"
+                >
+                  {`${parent.name} > ${child.name}`}
+                </SelectItem>
+              ))}
+          </React.Fragment>
+        ))}
+
+         {/* Render childless categories as top level if needed (though they should be in parentCategories) */}
+         {/* This section might be redundant if all childless cats are in parentCategories, but keeping for safety */}
+         {/* categories.filter(cat => !cat.parentCategory && !parentCategories.find(p => p._id === cat._id)).map(cat => (
+            <SelectItem key={cat._id} value={cat._id}> {cat.name} </SelectItem>
+         )) */}
+
       </SelectContent>
     </Select>
   )

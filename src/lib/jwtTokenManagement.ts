@@ -30,5 +30,4 @@ export function verifyToken(token: string | null){
         console.error("Token verification failed:", error)
         return null
     }
-    
 }

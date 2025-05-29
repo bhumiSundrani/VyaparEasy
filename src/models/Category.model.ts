@@ -4,14 +4,14 @@ export interface Category extends Document{
     name: string;
     parentCategory?: Types.ObjectId | null;
     imageUrl: string | null;
-    slug: string
+    slug: string;
+    user: Types.ObjectId;
 }
 
 const CategorySchema : Schema<Category> = new Schema({
     name: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     parentCategory: {
         type: Schema.Types.ObjectId,
@@ -23,10 +23,18 @@ const CategorySchema : Schema<Category> = new Schema({
     },
     slug: {
         type: String,
-        required: true,
-        unique: true
+        required: true
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     }
-})
+}, {timestamps: true})
+
+// Create compound indexes for name and slug to be unique per user
+CategorySchema.index({ name: 1, user: 1 }, { unique: true });
+CategorySchema.index({ slug: 1, user: 1 }, { unique: true });
 
 const CategoryModel = 
     (mongoose.models.Category as mongoose.Model<Category>) ||

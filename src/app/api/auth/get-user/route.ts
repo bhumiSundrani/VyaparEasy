@@ -1,4 +1,5 @@
-import { JWTToken, verifyToken } from '@/lib/jwtTokenManagement'
+import { verifyToken } from '@/lib/jwtTokenManagement'
+import { JWTToken } from '@/types/jwt'
 import {cookies} from 'next/headers'
 import { NextResponse } from 'next/server'
 import UserModel from '@/models/User.model'
