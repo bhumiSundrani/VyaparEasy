@@ -19,6 +19,7 @@ export interface CategoryFormData {
   _id?: string;
   name: string;
   parentCategory: string | null;
+  imageUrl?: string
 }
 
 const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) => {
@@ -35,6 +36,7 @@ const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) =>
     defaultValues: {
       name: category ? category.name : '',
       parentCategory: category ? category.parentCategory : null,
+      imageUrl: category ? category.imageUrl : ""
     },
   });
 
@@ -171,6 +173,14 @@ const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) =>
                   </FormItem>
                 )}
               />
+
+                {category?.imageUrl && 
+               <div className="space-y-2">
+                <FormLabel>Category Image</FormLabel>
+                <img src={category.imageUrl} className="h-[120px] border p-4 rounded-xl" alt="product image"/>
+              </div>
+                }
+
               </div>
               <div className="sm:flex items-center justify-center sm:space-x-4 space-y-2 sm:space-y-0">
               <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={submitting}>

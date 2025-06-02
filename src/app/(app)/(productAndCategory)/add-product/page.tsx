@@ -31,6 +31,7 @@ export interface ProductFormData {
   sellingPrice: number;
   lowStockThreshold: number;
   currentStock: number;
+  imageUrl?: string
 }
 
 const ProductForm = ({product}: {product: ProductFormData | null}) => {
@@ -49,6 +50,7 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
       sellingPrice: product ? product.sellingPrice : 0, 
       lowStockThreshold: product ? product.lowStockThreshold : 10,
       currentStock: product ? product.currentStock : 0,
+      imageUrl: product ? product.imageUrl : ""
     },
   });
 
@@ -138,8 +140,8 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
                 </FormItem>
               )}
             />
-
-            <FormField
+            <div className="space-y-4 sm:space-y-6">
+              <FormField
               control={form.control}
               name="category"
               render={({ field }) => (
@@ -173,6 +175,15 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
                 </FormItem>
               )}
             />
+            </div>
+            
+
+            {product?.imageUrl && (
+            <div className="space-y-2">
+              <FormLabel>Product Image</FormLabel>
+              <img src={product.imageUrl} className="h-[120px] border p-4 rounded-xl" alt="product image"/>
+            </div>
+          )}
 
             <FormField
               control={form.control}
@@ -254,6 +265,8 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
               )}
             />
           </div>
+
+          
 
           <div className="sm:flex items-center justify-center sm:space-x-4 space-y-2 sm:space-y-0">
             <Button type="submit" className="cursor-pointer bg-green-500 border-green-500 border-solid border-2 hover:bg-green-100 text-white hover:text-green-600 transition-colors duration-200 text-base sm:py-5 w-full sm:w-[200px]" disabled={adding}>
