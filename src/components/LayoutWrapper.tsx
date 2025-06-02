@@ -12,8 +12,22 @@ const LayoutWrapper = ({
 }>) => {
   const pathname = usePathname();
   const noLayoutRoute = "/verify-user";
-
   const [pageLoading, setPageLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Stop loader on pathname change
   useEffect(() => {
@@ -62,17 +76,11 @@ const LayoutWrapper = ({
 
   // Mobile-specific handling
   useEffect(() => {
-    const handleResize = () => {
-      const isMobile = window.innerWidth < 768;
-      if (isMobile && pageLoading) {
-        // Force clear loader on mobile resize
-        setPageLoading(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [pageLoading]);
+    if (isMobile && pageLoading) {
+      // Force clear loader on mobile
+      setPageLoading(false);
+    }
+  }, [isMobile, pageLoading]);
 
   // Add cleanup effect for loader state
   useEffect(() => {
@@ -95,12 +103,12 @@ const LayoutWrapper = ({
       <div className="flex-1 flex flex-col">
         <Navbar />
         <main className="overflow-auto h-full relative">
-          {pageLoading && window.innerWidth >= 768 && (
+          {pageLoading && !isMobile && (
             <div className="absolute inset-0 z-10">
               <Loader />
             </div>
           )}
-          <div className={pageLoading && window.innerWidth >= 768 ? "opacity-50" : ""}>
+          <div className={pageLoading && !isMobile ? "opacity-50" : ""}>
             {children}
           </div>
         </main>

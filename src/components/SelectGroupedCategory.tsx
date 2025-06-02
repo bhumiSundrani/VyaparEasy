@@ -13,7 +13,10 @@ import {
 interface CategoryOption {
   _id: string
   name: string
-  parentCategory?: string
+  parentCategory?: {
+    _id: string
+    name: string
+  } | null
 }
 
 interface SelectGroupedCategoryProps {
@@ -33,6 +36,8 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
     const fetchCategories = async () => {
       try {
         const res = await axios.get<{ categories: CategoryOption[] }>('/api/categories')
+        console.log('Fetched categories:', res.data.categories)
+        console.log('Sample category with parent:', res.data.categories.find(cat => cat.parentCategory))
         setCategories(res.data.categories)
       } catch (error) {
         console.error('Error fetching categories:', error)
@@ -50,8 +55,7 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
     
     // If it's a subcategory, show "Parent > Child" format in the trigger value
     if (category.parentCategory) {
-      const parent = categories.find(cat => cat._id.toString() === category.parentCategory?.toString())
-      return parent ? `${parent.name} > ${category.name}` : category.name
+      return `${category.parentCategory.name} > ${category.name}`
     }
     
     return category.name
@@ -61,6 +65,13 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
   const parentCategories = categories.filter(cat => !cat.parentCategory)
   const childCategories = categories.filter(cat => cat.parentCategory)
 
+  // Helper function to get children of a specific parent
+  const getChildrenOfParent = (parentId: string) => {
+    return childCategories.filter((child) => {
+      if (!child.parentCategory) return false
+      return child.parentCategory._id.toString() === parentId.toString()
+    })
+  }
 
   return (
     <Select value={value} onValueChange={onChange}>
@@ -77,33 +88,43 @@ const SelectGroupedCategory: React.FC<SelectGroupedCategoryProps> = ({
         )}
         
         {/* Render parent categories and their children immediately after */}
-        {parentCategories.map((parent) => (
-          <React.Fragment key={parent._id}>
-            {/* Parent Item */}
-            <SelectItem value={parent._id}>
-              {parent.name}
-            </SelectItem>
+        {parentCategories.map((parent) => {
+          const children = getChildrenOfParent(parent._id)
+          
+          return (
+            <React.Fragment key={parent._id}>
+              {/* Parent Item */}
+              <SelectItem value={parent._id}>
+                {parent.name}
+              </SelectItem>
 
-            {/* Children of this parent */}
-            {childCategories
-              .filter((child) => child.parentCategory === parent._id)
-              .map((child) => (
+              {/* Children of this parent */}
+              {children.map((child) => (
+                <div className='ml-4' key={child._id}>
                 <SelectItem
                   key={child._id}
                   value={child._id}
-                  className="pl-6 text-muted-foreground border-l-2 border-gray-200"
+                  className="text-muted-foreground border-l-2 border-gray-200"
                 >
-                  {`${parent.name} > ${child.name}`}
+                  {child.name}
                 </SelectItem>
+                </div>
               ))}
-          </React.Fragment>
-        ))}
+            </React.Fragment>
+          )
+        })}
 
-         {/* Render childless categories as top level if needed (though they should be in parentCategories) */}
-         {/* This section might be redundant if all childless cats are in parentCategories, but keeping for safety */}
-         {/* categories.filter(cat => !cat.parentCategory && !parentCategories.find(p => p._id === cat._id)).map(cat => (
-            <SelectItem key={cat._id} value={cat._id}> {cat.name} </SelectItem>
-         )) */}
+        {/* Render orphaned categories (categories that have parentCategory but parent doesn't exist) */}
+        {childCategories
+          .filter(child => {
+            if (!child.parentCategory) return false
+            return !parentCategories.find(parent => parent._id.toString() === child.parentCategory!._id.toString())
+          })
+          .map(orphan => (
+            <SelectItem key={orphan._id} value={orphan._id}>
+              {orphan.name}
+            </SelectItem>
+          ))}
 
       </SelectContent>
     </Select>

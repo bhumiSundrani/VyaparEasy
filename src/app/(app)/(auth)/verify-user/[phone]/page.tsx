@@ -16,12 +16,39 @@ export default function Page() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
+  const [seconds, setSeconds] = useState(30)
 
   const phone : string = params.phone as string
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if(seconds === 0) return
+
+    const timer = setInterval(() => {
+      setSeconds(prev => prev-1);
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [seconds])
+
+  const handleResendOTP = async () => {
+    try {
+      const response = await axios.post<ApiResponse>('/api/auth/send-otp', { phone: phone })
+      if (response.data.success) {
+        toast.success('OTP Sent Successfully!', {
+          icon: '✅',
+        })
+      }
+    }catch(error){
+      const axiosError = error as AxiosError<ApiResponse>
+      toast.error(axiosError.response?.data.message || 'Something went wrong.', {
+        icon: '❌',
+      })
+    }
+  }
 
   const handleOTPSubmit = async (otp: string) => {
     setLoading(true)
@@ -116,6 +143,8 @@ export default function Page() {
         <CardContent>
           <OTPVerificationForm onSubmit={handleOTPSubmit} loading={loading}/>
         </CardContent>
+
+        <CardDescription className="text-xs sm:text-sm text-center mt-2 px-4">{seconds > 0 ? `Request new OTP in ${seconds} seconds.` : <span onClick={handleResendOTP} className='text-blue-500 hover:text-blue-700 hover:underline cursor-pointer'>Resend OTP</span> }</CardDescription>
       </Card>
     </div>
   )

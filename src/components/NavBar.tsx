@@ -9,11 +9,15 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store/store';
 import { useState } from 'react';
 import Loader from './Loader';
+import { useDispatch } from 'react-redux';
+import { setUser } from '@/app/store/slices/authSlice';
+import { useEffect } from 'react';
 
 export default function Navbar() {
+  const dispatch = useDispatch()
   const router = useRouter();
   const user = useSelector((state : RootState) => state.auth.user)
-  const [pageLoading, setPageLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const handleLogout = () => {
     try {
@@ -24,6 +28,21 @@ export default function Navbar() {
       console.log("Error logging out user", error)
     }
   };
+
+  useEffect(()=>{
+      async function getUser(){
+        const res = await axios.get('/api/auth/get-user')
+        const user = res.data?.user || null
+        return user
+      }
+
+      const fetchUserData = async () => {
+        const userData = await getUser()
+        dispatch(setUser(userData))
+        setPageLoading(false)
+      }
+      fetchUserData()
+  }, [dispatch])
 
   if(pageLoading) return <Loader/>
 

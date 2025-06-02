@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings, BarChart2, ArrowUpCircle,
   ArrowDownCircle, Package, LayoutDashboard, TrendingUp,
@@ -44,12 +44,25 @@ interface SideBarProps {
 
 const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
+
+  // Handle mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleNavigation = (url: string) => {
     if (!url) return; // Skip if no URL provided
-    
-    const isMobile = window.innerWidth < 768;
     
     // Show loader only on desktop
     if (!isMobile) {
@@ -95,7 +108,7 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
           </div>
 
           {/* Nav Sections */}
-          <div className="flex flex-col space-y-6">
+          <div className="space-y-6">
             <NavSection
               title="Menu"
               items={[
