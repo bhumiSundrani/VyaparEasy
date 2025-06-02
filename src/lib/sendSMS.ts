@@ -1,30 +1,16 @@
 import axios from 'axios';
 
-export interface SmsPayload {
-  phone: string;     // 10-digit Indian number
-  message: string;
-}
-
-export async function sendSMS({ phone, message }: SmsPayload) {
-    console.log("In send otp")
+export async function sendSMS({ phone, otp }: { phone: string; otp: string }) {
   try {
-    const response = await axios.post(
-      'https://www.fast2sms.com/dev/bulkV2',
-      {
-        route: 'q',
-        sender_id: 'FSTSMS',
-        message,
-        language: 'english',
+    const response = await axios.get('https://www.fast2sms.com/dev/bulkV2', {
+      params: {
+        authorization: process.env.FAST2SMS_API_KEY!,
+        route: 'otp',
+        variables_values: otp,
         flash: 0,
         numbers: phone,
       },
-      {
-        headers: {
-          authorization: process.env.FAST2SMS_API_KEY, // Load from .env
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    });
 
     console.log('✅ SMS sent successfully:', response.data);
     return response.data;
