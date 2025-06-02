@@ -21,17 +21,17 @@ export async function POST(req: NextRequest){
 
         const otp = generateOtp()
         const smsPayload : SmsPayload = {
-            phone: `+91${phone}`,
+            phone: `${phone}`,
             message: `VyaparEasy OTP: ${otp}. Use this to verify your phone number. Do not share it with anyone.
 `
         }
         const response = await sendSMS(smsPayload)
-        if(!response){
+        if (response?.return !== true) {
             console.log("Error sending otp: ", response)
             return NextResponse.json({
                 success: false,
                 message: "Error sending otp"
-            }, {status: 500})
+            }, { status: 500 });
         }
         const now = new Date()
         await OtpVerificationModel.findOneAndUpdate(
