@@ -11,7 +11,8 @@ export interface Category extends Document{
 const CategorySchema : Schema<Category> = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     parentCategory: {
         type: Schema.Types.ObjectId,

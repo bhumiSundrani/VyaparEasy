@@ -63,6 +63,10 @@ const ProductSchema : Schema<Product> = new Schema({
     }
 }, {timestamps: true})
 
+// Add this line after schema definition
+ProductSchema.index({ name: 1, user: 1 }, { unique: true });
+
+
 const ProductModel = 
     (mongoose.models.Product as mongoose.Model<Product>) ||
     mongoose.model<Product>('Product', ProductSchema)
