@@ -122,7 +122,7 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
               title="Quick Actions"
               items={[
                 { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "" },
-                { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "" },
+                { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "/add-purchase" },
               ]}
               onItemClick={handleNavigation}
             />

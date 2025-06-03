@@ -5,12 +5,12 @@ export interface Transaction extends Document{
     type: "purchase" | "sale";
     paymentType: "cash" | "credit";
     customer?: {
-        name?: string;
-        phone?: string
+        name: string;
+        phone: string
     };
     supplier?: {
-        name?: string;
-        phone?: string
+        name: string;
+        phone: string
     };
     items: {
         productId: Types.ObjectId;
@@ -21,7 +21,8 @@ export interface Transaction extends Document{
     otherExpenses?: {
         name: string;
         amount: number
-    }[]
+    }[],
+    transactionDate: Date
 }
 
 const TransactionSchema: Schema<Transaction> = new Schema({
@@ -84,10 +85,28 @@ const TransactionSchema: Schema<Transaction> = new Schema({
         amount: {
             type: Number
         }
-    }]
+    }],
+    transactionDate: {
+        type: Date,
+        default: Date.now
+    }
 }, {
     timestamps: true
 })
+
+TransactionSchema.pre("validate", function (next) {
+  if (this.type === "sale" && !this.customer) {
+    return next(new Error("Customer is required for a sale"));
+  }
+  if (this.type === "purchase" && !this.supplier) {
+    return next(new Error("Supplier is required for a purchase"));
+  }
+  next();
+});
+
+TransactionSchema.index({ userId: 1 });
+TransactionSchema.index({ transactionDate: -1 });
+
 
 const TransactionModel = 
     (mongoose.models.Transaction as mongoose.Model<Transaction>) ||

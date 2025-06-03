@@ -9,7 +9,8 @@ export interface Party extends Document{
     dueDate?: Date;
     paid: boolean;
     remindersSent: number;
-    lastReminderDate?: Date | null
+    lastReminderDate?: Date | null;
+    user: Types.ObjectId
 }
 
 const PartySchema : Schema<Party> = new Schema({
@@ -52,6 +53,11 @@ const PartySchema : Schema<Party> = new Schema({
     lastReminderDate: {
         type: Date,
         default: null
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     }
 }, {timestamps: true})
 

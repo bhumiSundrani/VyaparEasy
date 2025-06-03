@@ -6,7 +6,8 @@ export interface SMS extends Document{
     message: string;
     type: "stock_alert" | "creditor_payment" | "otp" | "repayment_reminder";
     deliveryStatus: "pending" | "failed" | "sent";
-    sentAt?: Date | null
+    sentAt?: Date | null,
+    user: Types.ObjectId
 }
 
 const SMSSchema: Schema<SMS> = new Schema({
@@ -35,6 +36,11 @@ const SMSSchema: Schema<SMS> = new Schema({
     sentAt: {
         type: Date,
         default: null
+    }, 
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     }
 }, {timestamps: true})
 
