@@ -118,13 +118,20 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
     try {
       const endpoint = purchase ? `/api/purchases/edit-purchase/${purchase._id}` : "/api/purchases/add-purchase";
       const method = purchase ? "put" : "post";
+
+      let phone;
+      if(data.supplier.phone.startsWith('+91')){
+        phone = data.supplier.phone.split('+91')[1]
+      }else {
+        phone = data.supplier.phone
+      }
       
       const response = await axios[method](endpoint, {
         ...data,
         totalAmount: calculateTotalAmount(),
         supplier: {
           name: data.supplier.name,
-          phone: data.supplier.phone.split('+91')[1]
+          phone: phone
         }
       });
 
