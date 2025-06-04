@@ -40,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           return NextResponse.json({ success: false, message: "Unauthorized access" }, { status: 401 });
       }
 
-      const decodedToken = verifyToken(token);
+      const decodedToken = await verifyToken(token);
       if (!decodedToken) {
           return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
       }
@@ -55,14 +55,53 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           return NextResponse.json({ success: false, message: "Transaction not found" }, { status: 404 });
       }
 
-      // Validate all products exist
+      // Store original items for stock adjustment
+      const originalItems = transaction.items;
+
+      // Validate all products exist and prepare stock changes
+      const stockChanges: Map<string, number> = new Map();
+      
       for (const item of items) {
-          const exists = await ProductModel.findById(item.productId);
-          if (!exists) {
+          const product = await ProductModel.findById(item.productId);
+          if (!product) {
               return NextResponse.json({
                   success: false,
                   message: `Product with id ${item.productId} does not exist`
               }, { status: 400 });
+          }
+          
+          // Find original quantity for this product
+          const originalItem = originalItems.find(orig => 
+              orig.productId.toString() === item.productId.toString()
+          );
+          const originalQuantity = originalItem ? originalItem.quantity : 0;
+          
+          // Calculate stock change (new quantity - old quantity)
+          const stockChange = item.quantity - originalQuantity;
+          
+          if (stockChange !== 0) {
+              // Check if we have enough stock for reduction
+              if (stockChange < 0 && product.currentStock < Math.abs(stockChange)) {
+                  return NextResponse.json({
+                      success: false,
+                      message: `Insufficient stock for product ${product.name}. Available: ${product.currentStock}, Required: ${Math.abs(stockChange)}`
+                  }, { status: 400 });
+              }
+              
+              stockChanges.set(item.productId.toString(), stockChange);
+          }
+      }
+
+      // Handle removed products (products that were in original but not in new items)
+      for (const originalItem of originalItems) {
+          const stillExists = items.find(item => 
+              item.productId.toString() === originalItem.productId.toString()
+          );
+          
+          if (!stillExists) {
+              // Product was removed, reduce stock by original quantity
+              const stockChange = -originalItem.quantity;
+              stockChanges.set(originalItem.productId.toString(), stockChange);
           }
       }
 
@@ -74,6 +113,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       // Convert items to proper format
       const convertedItems = items.map(item => ({
           productId: new Types.ObjectId(item.productId),
+          productName: item.productName,
           quantity: item.quantity,
           pricePerUnit: item.pricePerUnit,
       }));
@@ -102,6 +142,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           transaction.transactionDate = transactionDate;
       }
       await transaction.save();
+
+      // Update product stocks
+      for (const [productId, stockChange] of stockChanges) {
+          await ProductModel.findByIdAndUpdate(
+              productId,
+              { $inc: { currentStock: stockChange } },
+              { new: true }
+          );
+      }
 
       // Handle party updates
       let party = await PartyModel.findOne({ 

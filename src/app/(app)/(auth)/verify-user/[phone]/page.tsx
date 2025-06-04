@@ -59,12 +59,16 @@ export default function Page() {
       return
     }
     try {
-      const response = await axios.post('/api/auth/verify-otp', {phone: phone, otp: otp})
+      const response = await axios.post('/api/auth/verify-otp', {phone: phone, otp: otp}, {
+        withCredentials: true
+      })
 
       if (response.data.success) {
         toast.success('OTP Verified Successfully!', {
           icon: '✅',
         })
+        // Add a small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 1000));
         try {
           const userResponse = await axios.get('/api/auth/get-user', {withCredentials: true})
           console.log('User Response:', userResponse.data) // Debug log

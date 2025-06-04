@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-export function DeleteProductButton({ onDelete }: { onDelete: () => Promise<void> }) {
+export function DeleteButton({ onDelete, type }: { onDelete: () => Promise<void>, type: string }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -45,7 +45,7 @@ export function DeleteProductButton({ onDelete }: { onDelete: () => Promise<void
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the product.
+            This action cannot be undone. This will permanently delete the {type}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

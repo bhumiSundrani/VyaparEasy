@@ -140,7 +140,7 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
               title="Transactions"
               items={[
                 { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "" },
-                { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "" },
+                { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "/purchases" },
               ]}
               onItemClick={handleNavigation}
             />

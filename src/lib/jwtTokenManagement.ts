@@ -1,33 +1,62 @@
-import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify, JWTPayload } from 'jose'
 
-const tokenSecret = process.env.JWT_SECRET as string
-
-export interface JWTToken{
-    phone: string,
-    name: string,
-    shopName: string,
-    preferredLanguage: string
+const secret = process.env.JWT_SECRET
+if (!secret) {
+  throw new Error("JWT_SECRET is not defined in environment variables")
 }
 
-export function generateToken(data: JWTToken | null){
-    if(!data){
-        console.log("Data not found")
-        return null
-    }
-    const token = jwt.sign(data, tokenSecret, {expiresIn: "7d"})
-    return token
+// Convert secret string to Uint8Array
+const secretKey = new TextEncoder().encode(secret)
+
+export interface JWTToken extends JWTPayload {
+  phone: string
+  name: string
+  shopName: string
+  preferredLanguage: string
 }
 
-export function verifyToken(token: string | null){
-    if(!token){
-        console.log("No token found")
-        return null
+// Generate token (valid for 7 days)
+export async function generateToken(payload: JWTToken): Promise<string> {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('7d')
+    .sign(secretKey)
+}
+
+// Verify token and ensure it matches your expected structure
+export async function verifyToken(token: string | null): Promise<JWTToken | null> {
+  if (!token) {
+    console.log("No token found")
+    return null
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, secretKey)
+    
+    // Type guard function to check if payload matches JWTToken structure
+    function isJWTToken(payload: JWTPayload): payload is JWTPayload & JWTToken {
+      return (
+        typeof payload.phone === 'string' &&
+        typeof payload.name === 'string' &&
+        typeof payload.shopName === 'string' &&
+        typeof payload.preferredLanguage === 'string'
+      )
     }
-    try {
-        const payload = jwt.verify(token, tokenSecret) as JWTToken
-        return payload
-    } catch (error) {
-        console.error("Token verification failed:", error)
-        return null
+
+    if (isJWTToken(payload)) {
+      return {
+        phone: payload.phone,
+        name: payload.name,
+        shopName: payload.shopName,
+        preferredLanguage: payload.preferredLanguage
+      }
+    } else {
+      console.warn("JWT payload does not match expected structure")
+      return null
     }
+  } catch (err) {
+    console.error("Invalid token:", err)
+    return null
+  }
 }

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
             }, { status: 401 });
         }
 
-        const decodedToken = verifyToken(token);
+        const decodedToken = await verifyToken(token);
         if (!decodedToken) {
             return NextResponse.json({
                 success: false,
@@ -187,7 +187,7 @@ export async function GET(){
             }, { status: 401 });
         }
 
-        const decodedToken = verifyToken(token);
+        const decodedToken = await verifyToken(token);
         if (!decodedToken) {
             return NextResponse.json({
                 success: false,

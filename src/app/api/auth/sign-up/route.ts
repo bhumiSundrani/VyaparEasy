@@ -42,7 +42,7 @@ export async function POST(req: NextRequest){
             isVerified: true
         })
         await newUser.save()
-         const token = generateToken({
+         const token = await generateToken({
             phone: `+91${phone}`,
             name: newUser.name,
             shopName: newUser.shopName,

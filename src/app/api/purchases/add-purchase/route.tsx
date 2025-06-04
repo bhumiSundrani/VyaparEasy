@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
           }, { status: 401 });
       }
 
-      const decodedToken = verifyToken(token);
+      const decodedToken = await verifyToken(token);
       if (!decodedToken) {
           return NextResponse.json({
               success: false,
@@ -70,12 +70,15 @@ export async function POST(req: NextRequest) {
                   success: false,
                   message: `Product with id ${item.productId} does not exist`
               }, { status: 400 });
+          }else{
+            await ProductModel.updateOne({_id: exists._id}, {currentStock: exists.currentStock + item.quantity})
           }
       }
 
       // Convert items to proper format with ObjectIds
       const convertedItems = items.map(item => ({
           productId: new Types.ObjectId(item.productId),
+          productName: item.productName,
           quantity: item.quantity,
           pricePerUnit: item.pricePerUnit,
       }));

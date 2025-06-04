@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Edit} from "lucide-react"
-import { DeleteProductButton } from "@/components/DeleteProductButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -107,7 +107,7 @@ const MobileCategoryCard = ({ category, onEdit, onDelete, editDisabled }: {
           )}
         </Button>
         
-        <DeleteProductButton onDelete={onDelete} />
+        <DeleteButton onDelete={onDelete} type="category"/>
       </div>
     </div>
   );
@@ -142,7 +142,7 @@ const ActionsCell: React.FC<{ category: CategoryColumnData; onCategoryDeleted: (
         {editDisabled ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Edit className="h-3 w-3 mr-1.5" />Edit</>}
       </Button>
 
-      <DeleteProductButton onDelete={handleDeleteCategory} />
+      <DeleteButton onDelete={handleDeleteCategory} type="category"/>
     </div>
   );
 };

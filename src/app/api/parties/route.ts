@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Unauthorized access" }, { status: 401 });
     }
 
-    const decodedToken = verifyToken(token);
+    const decodedToken = await verifyToken(token);
     if (!decodedToken) {
       return NextResponse.json({ success: false, message: "Invalid token" }, { status: 401 });
     }

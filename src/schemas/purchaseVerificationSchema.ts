@@ -9,6 +9,7 @@ export const purchaseVerificationSchema = z.object({
     }),
     items: z.array(z.object({
         productId: z.string().min(1, "Product ID is required"),
+        productName: z.string().min(1, "Product name is required"),
         quantity: z.number().positive("Quantity must be positive"),
         pricePerUnit: z.number().positive("Price must be positive") 
     })).min(1, "At least one item is required"),

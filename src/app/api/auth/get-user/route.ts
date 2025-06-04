@@ -20,7 +20,7 @@ export async function GET(){
 
         let decodedToken: JWTToken | null = null
         try {
-            decodedToken = verifyToken(token)
+            decodedToken = await verifyToken(token)
         } catch (err) {
             console.log(err)
             return NextResponse.json({

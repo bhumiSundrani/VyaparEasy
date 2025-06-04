@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Loader2, Edit} from "lucide-react"
-import { DeleteProductButton } from "@/components/DeleteProductButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import axios from "axios";
 import { toast } from "sonner";
 import React from "react";
@@ -135,7 +135,7 @@ const MobileProductCard = ({ product, onEdit, onDelete, editDisabled}: {
           )}
         </Button>
         
-        <DeleteProductButton onDelete={onDelete} />
+        <DeleteButton onDelete={onDelete} type="product"/>
       </div>
     </div>
   );
@@ -234,7 +234,7 @@ const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ product, handle
         )}
       </Button>
 
-      <DeleteProductButton onDelete={handleDeleteProduct} />
+      <DeleteButton onDelete={handleDeleteProduct} type="product"/>
     </div>
   );
 };

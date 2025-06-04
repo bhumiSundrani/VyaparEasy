@@ -34,6 +34,7 @@ export interface PurchaseFormData {
   },
   items: {
     productId: string,
+    productName: string,
     quantity: number,
     pricePerUnit: number
   }[],
@@ -57,8 +58,22 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
         name: purchase?.supplier?.name ?? "",
         phone: purchase?.supplier?.phone ?? ""
       },
-      items: purchase?.items ?? [{
+      items: purchase ?
+      purchase.items.length > 0 ?
+      purchase.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        pricePerUnit: item.pricePerUnit
+      })) : [{
         productId: "",
+        productName: "", // ADD THIS MISSING FIELD
+        quantity: 1,
+        pricePerUnit: 0
+      }]
+      : [{
+        productId: "",
+        productName: "", // ADD THIS MISSING FIELD
         quantity: 1,
         pricePerUnit: 0
       }],
@@ -67,8 +82,12 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
       transactionDate: purchase?.transactionDate
         ? new Date(purchase.transactionDate)
         : new Date(),
-    }
-  })
+    },
+    // ADD VALIDATION MODE
+    mode: 'onChange',
+    // ADD VALIDATION RULES
+    resolver: undefined // You should add proper validation here
+  });
 
   const {
     control,
@@ -139,7 +158,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
         toast.success(purchase ? "Purchase updated successfully!" : "Purchase created successfully!", {
           icon: "✅",
         });
-        // router.push("/all-purchases");
+        router.push("/purchases");
       }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
@@ -297,47 +316,85 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                     className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-5 border border-gray-100 rounded-xl bg-gray-50/50"
                   >
                     {/* Product Selection - Full width on mobile, 5 cols on desktop */}
-                    <div className="lg:col-span-5">
-                      <FormLabel  className="text-sm font-medium mb-2 text-gray-700">
-                        Product <span className="text-red-600">*</span>
-                      </FormLabel>
-                      <Controller
-                        control={control}
-                        name={`items.${index}.productId`}
-                        render={({ field }) => (
-                          <SelectProducts
-                            value={field.value}
-                            onChange={(val) => field.onChange(val)}
-                            onSelect={(product) => {
-                              setValue(`items.${index}.productId`, product._id)
-                              setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0)
-                            }}
-                            className=" text-sm border-gray-200 "
-                          />
-                        )}
-                      />
-                      {errors.items?.[index]?.productId && (
-                        <p className="text-xs text-red-600 mt-1">
-                          {errors.items[index]?.productId?.message}
-                        </p>
-                      )}
-                    </div>
+                  
+                      <div className="lg:col-span-5">
+  <FormField
+    control={form.control}
+    name={`items.${index}.productName`} // Use FormField instead of Controller
+    rules={{
+      required: "Please select a product",
+      validate: (value) => {
+        const productId = form.getValues(`items.${index}.productId`);
+        if (!productId) return "Product selection is incomplete";
+        return true;
+      }
+    }}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel className="text-sm font-medium mb-2 text-gray-700">
+          Product <span className="text-red-600">*</span>
+        </FormLabel>
+        <FormControl>
+          <SelectProducts
+            value={field.value || ""} // Ensure controlled value
+            onChange={(val) => {
+              console.log(`Product name changed for item ${index}:`, val); // DEBUG
+              field.onChange(val); // Update form state
+            }}
+            onSelect={(product) => {
+              console.log(`Product selected for item ${index}:`, product); // DEBUG
+              // Update all product-related fields atomically
+              form.setValue(`items.${index}.productId`, product._id, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true
+              });
+              form.setValue(`items.${index}.productName`, product.name, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true
+              });
+              form.setValue(`items.${index}.quantity`, 0, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true
+              });
+              form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true
+              });
+            }}
+            displayValue={field.value} // Use field.value directly
+            className="text-sm border-gray-200"
+          />
+        </FormControl>
+        <FormMessage />
+        {/* DEBUG: Show current values */}
+        <div className="text-xs text-gray-400 mt-1">
+          ID: {watch(`items.${index}.productId`) || 'Not set'} | 
+          Name: {field.value || 'Not set'}
+        </div>
+      </FormItem>
+    )}
+  />
+</div>
 
-                    {/* Quantity */}
-                    <div className="lg:col-span-2">
+<div className="lg:col-span-2">
                       <FormField
                         control={form.control}
                         name={`items.${index}.quantity`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel  className="text-sm font-medium text-gray-700">
+                            <FormLabel   className="text-sm font-medium text-gray-700">
                               Quantity <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="Qty" 
+                                placeholder="Quantity" 
                                 type="number"
-                                min={1}
+                                min="0"
+                                step="1"
                                 {...field} 
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                                 className="h-10 text-sm border-gray-200 focus:border-blue-400"
@@ -409,7 +466,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                   type="button"
                   variant="outline"
                   onClick={() =>
-                    appendItem({ productId: "", quantity: 1, pricePerUnit: 0 })
+                    appendItem({ productId: "", productName: "", quantity: 1, pricePerUnit: 0 })
                   }
                   className="w-full h-12 border-dashed border-2 border-green-300 text-green-600 hover:bg-green-50"
                 >

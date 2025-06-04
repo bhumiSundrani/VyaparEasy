@@ -24,6 +24,7 @@ import {
 
 interface SelectProductsProps {
   value: string // This will be the product ID
+  displayValue?: string // This will be the product name for display (used in edit mode)
   onChange: (val: string) => void // This will set the product ID
   onSelect: (product: ProductColumnData) => void
   placeholder?: string
@@ -32,6 +33,7 @@ interface SelectProductsProps {
 
 export const SelectProducts: React.FC<SelectProductsProps> = ({
   value,
+  displayValue,
   onChange,
   onSelect,
   placeholder = "Search products...",
@@ -43,21 +45,89 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
   const [cache, setCache] = useState<Map<string, ProductColumnData[]>>(new Map())
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedProduct, setSelectedProduct] = useState<ProductColumnData | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
   
   const debouncedSearchTerm = useDebounce(searchTerm, 250)
 
-  // Find selected product by ID when value changes
+  // Initialize with displayValue when editing
   useEffect(() => {
-    if (value && results.length > 0) {
-      const product = results.find(p => p._id === value)
-      if (product) {
-        setSelectedProduct(product)
-        if (!searchTerm) {
-          setSearchTerm(product.name || "")
+    if (displayValue && !isInitialized) {
+      setSearchTerm(displayValue)
+      setIsInitialized(true)
+      
+      // If we have both value (ID) and displayValue (name), create a mock selected product
+      if (value) {
+        setSelectedProduct({
+          _id: value,
+          name: displayValue,
+          // Add other default properties as needed
+        } as ProductColumnData)
+      }
+    }
+  }, [displayValue, value, isInitialized])
+
+  useEffect(() => {
+    const fetchProductForEdit = async () => {
+      if (value && displayValue && !isInitialized && !selectedProduct) {
+        setIsLoading(true)
+        try {
+          // Fetch complete product data by ID
+          const response = await axios.get(`/api/products/${value}`)
+          const product = response.data
+          
+          if (product) {
+            setSelectedProduct(product)
+            setSearchTerm(product.name || displayValue)
+          } else {
+            // Fallback to mock object if API call fails
+            setSelectedProduct({
+              _id: value,
+              name: displayValue,
+            } as ProductColumnData)
+            setSearchTerm(displayValue)
+          }
+        } catch (error) {
+          console.error('Error fetching product for edit:', error)
+          // Fallback to mock object
+          setSelectedProduct({
+            _id: value,
+            name: displayValue,
+          } as ProductColumnData)
+          setSearchTerm(displayValue)
+        } finally {
+          setIsLoading(false)
+          setIsInitialized(true)
         }
       }
     }
-  }, [value, results, searchTerm]) // Added searchTerm to dependencies
+  
+    fetchProductForEdit()
+  }, [value, displayValue, isInitialized, selectedProduct])
+
+  // Find selected product by ID when value changes (for new selections)
+  useEffect(() => {
+    if (value && results.length > 0 && !selectedProduct) {
+      const product = results.find(p => p._id === value)
+      if (product) {
+        setSelectedProduct(product)
+        setSearchTerm(product.name || "")
+      }
+    }
+  }, [value, results, selectedProduct])
+
+  // Clear selection when search term changes significantly
+  useEffect(() => {
+    if (selectedProduct && searchTerm !== selectedProduct.name && searchTerm.length > 0) {
+      // Only clear if the search term is significantly different
+      const similarity = searchTerm.toLowerCase().includes(selectedProduct.name?.toLowerCase() || '') ||
+                        (selectedProduct.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      
+      if (!similarity) {
+        setSelectedProduct(null)
+        onChange("") // Clear the ID
+      }
+    }
+  }, [searchTerm, selectedProduct, onChange])
 
   // Memoized search function with caching
   const searchProducts = useCallback(async (searchTerm: string) => {
@@ -133,12 +203,13 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
   // Handle input change
   const handleInputChange = useCallback((newValue: string) => {
     setSearchTerm(newValue)
-    if (selectedProduct && newValue !== selectedProduct.name) {
-      // User is typing something different, clear selection
+    
+    // If user clears the input, also clear the selection
+    if (!newValue.trim()) {
       setSelectedProduct(null)
-      onChange("") // Clear the ID
+      onChange("")
     }
-  }, [selectedProduct, onChange])
+  }, [onChange])
 
   // Handle product selection
   const handleProductSelect = useCallback((product: ProductColumnData) => {
@@ -148,6 +219,23 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
     onSelect(product)
     setResults([]) // Clear results after selection
   }, [onChange, onSelect])
+
+  // Handle input focus - show dropdown if we have a search term but no selection
+  const handleInputFocus = useCallback(() => {
+    if (searchTerm && !selectedProduct && results.length === 0) {
+      searchProducts(searchTerm)
+    }
+  }, [searchTerm, selectedProduct, results.length, searchProducts])
+
+  const getPlaceholder = () => {
+    if (selectedProduct?.name) {
+      return selectedProduct.name
+    }
+    if (displayValue) {
+      return displayValue
+    }
+    return placeholder
+  }
 
   // Memoized product items for better performance
   const productItems = useMemo(() => {
@@ -248,7 +336,11 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
         </CommandItem>
       )
     })
-  }, [results, getStockStatus, formatPrice, handleProductSelect]) // Added all dependencies
+  }, [results, getStockStatus, formatPrice, handleProductSelect])
+
+  // Show dropdown condition - only show if we're searching and don't have a clear selection
+  const shouldShowDropdown = results.length > 0 && searchTerm.length > 0 && 
+    (!selectedProduct || selectedProduct.name !== searchTerm)
 
   return (
     <div className={`relative ${className}`}>
@@ -256,18 +348,24 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-500 flex-shrink-0" size={16} />
           <CommandInput
-            placeholder={placeholder}
-            value={searchTerm}
-            onValueChange={handleInputChange}
-            className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400 bg-inherit"
-          />
+          placeholder={getPlaceholder()}
+          value={searchTerm}
+          onValueChange={handleInputChange}
+          onFocus={handleInputFocus}
+          className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400 bg-inherit"
+        />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 animate-spin flex-shrink-0" size={16} />
           )}
+          {selectedProduct && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            </div>
+          )}
         </div>
 
-        {/* Only show dropdown if there are results and no product is selected */}
-        {(results.length > 0 && !selectedProduct) && (
+        {/* Show dropdown based on search state */}
+        {shouldShowDropdown && (
           <CommandList className="max-h-80 overflow-y-auto">
             {error && (
               <div className="flex items-center space-x-2 p-4 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20">
@@ -317,14 +415,6 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
           </CommandList>
         )}
       </Command>
-      
-      {/* {results.length > 0 && !selectedProduct && (
-        <div className="absolute right-3 top-3 z-10">
-          <div className="bg-gray-900/80 backdrop-blur-sm text-white rounded-full px-3 py-1 text-xs font-medium">
-            {results.length} product{results.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-      )} */}
     </div>
   )
 }

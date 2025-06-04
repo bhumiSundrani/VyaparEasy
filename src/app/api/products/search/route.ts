@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const decodedToken = verifyToken(token);
+    const decodedToken = await verifyToken(token);
     if (!decodedToken) {
       return NextResponse.json(
         { success: false, message: "Invalid token" }, 

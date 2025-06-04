@@ -12,7 +12,7 @@ export async function getUserFromToken() {
             return null;
         }
 
-        const decodedToken = verifyToken(token);
+        const decodedToken = await verifyToken(token);
         if (!decodedToken) {
             return null;
         }
