@@ -9,9 +9,10 @@ import { Types } from "mongoose";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string } >}) {
   await dbConnect();
   const body = await req.json();
+  const {id} = await params
   const parsedBody = purchaseVerificationSchema.safeParse(body);
 
   if (!parsedBody.success) {
@@ -49,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           return NextResponse.json({ success: false, message: "User not found" }, { status: 401 });
       }
 
-      const transaction = await TransactionModel.findOne({ _id: params.id, userId: user._id });
+      const transaction = await TransactionModel.findOne({ _id: id, userId: user._id });
       if (!transaction) {
           return NextResponse.json({ success: false, message: "Transaction not found" }, { status: 404 });
       }

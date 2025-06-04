@@ -52,13 +52,12 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
       const product = results.find(p => p._id === value)
       if (product) {
         setSelectedProduct(product)
-        setSearchTerm(product.name || "")
+        if (!searchTerm) {
+          setSearchTerm(product.name || "")
+        }
       }
-    } else if (!value) {
-      setSelectedProduct(null)
-      setSearchTerm("")
     }
-  }, [value, results])
+  }, [value, results, searchTerm]) // Added searchTerm to dependencies
 
   // Memoized search function with caching
   const searchProducts = useCallback(async (searchTerm: string) => {
@@ -117,38 +116,38 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
   }, [debouncedSearchTerm, searchProducts, selectedProduct])
 
   // Helper function to get stock status
-  const getStockStatus = (product: ProductColumnData) => {
+  const getStockStatus = useCallback((product: ProductColumnData) => {
     const stock = product.currentStock || 0
     const threshold = product.lowStockThreshold || 10
     if (stock === 0) return { status: 'out', color: 'text-red-600', icon: Minus }
     if (stock <= threshold) return { status: 'low', color: 'text-amber-600', icon: TrendingDown }
     return { status: 'good', color: 'text-green-600', icon: TrendingUp }
-  }
+  }, [])
 
   // Helper function to format price
-  const formatPrice = (price: number | undefined) => {
+  const formatPrice = useCallback((price: number | undefined) => {
     if (price === undefined || price === null) return 'N/A'
     return `₹${price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  }
+  }, [])
 
   // Handle input change
-  const handleInputChange = (newValue: string) => {
+  const handleInputChange = useCallback((newValue: string) => {
     setSearchTerm(newValue)
     if (selectedProduct && newValue !== selectedProduct.name) {
       // User is typing something different, clear selection
       setSelectedProduct(null)
       onChange("") // Clear the ID
     }
-  }
+  }, [selectedProduct, onChange])
 
   // Handle product selection
-  const handleProductSelect = (product: ProductColumnData) => {
+  const handleProductSelect = useCallback((product: ProductColumnData) => {
     setSelectedProduct(product)
     setSearchTerm(product.name || "")
     onChange(product._id) // Set the product ID
     onSelect(product)
     setResults([]) // Clear results after selection
-  }
+  }, [onChange, onSelect])
 
   // Memoized product items for better performance
   const productItems = useMemo(() => {
@@ -161,7 +160,7 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
           key={product._id}
           value={`${product.name} ${product.brand || ''} ${product.category?.name || ''}`}
           onSelect={() => handleProductSelect(product)}
-          className="flex items-center justify-between p-3 sm:p-4 cursor-pointer bg-accent-foreground dark:hover:bg-slate-800 transition-colors duration-150 border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+          className="flex items-center justify-between p-3 sm:p-4 cursor-pointer bg-accent-foreground dark:hover:bg-slate-800 transition-colors duration-150 border-b border-gray-100 rounded-xl"
         >
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             {/* Product Image/Icon */}
@@ -249,18 +248,18 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
         </CommandItem>
       )
     })
-  }, [results])
+  }, [results, getStockStatus, formatPrice, handleProductSelect]) // Added all dependencies
 
   return (
     <div className={`relative ${className}`}>
-      <Command className="rounded-lg border border-gray-200 dark:border-slate-700 shadow-lg bg-white dark:bg-slate-900 w-full min-w-0">
+      <Command className="rounded-lg border border-gray-200 dark:border-slate-700 bg-transparent dark:bg-slate-900 w-full min-w-0">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500 flex-shrink-0" size={16} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-500 flex-shrink-0" size={16} />
           <CommandInput
             placeholder={placeholder}
             value={searchTerm}
             onValueChange={handleInputChange}
-            className="pl-10 pr-10 py-3 text-sm border-0 focus:ring-0 bg-transparent h-11"
+            className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400 bg-inherit"
           />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 animate-spin flex-shrink-0" size={16} />
@@ -319,13 +318,13 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
         )}
       </Command>
       
-      {results.length > 0 && !selectedProduct && (
+      {/* {results.length > 0 && !selectedProduct && (
         <div className="absolute right-3 top-3 z-10">
           <div className="bg-gray-900/80 backdrop-blur-sm text-white rounded-full px-3 py-1 text-xs font-medium">
             {results.length} product{results.length !== 1 ? 's' : ''}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   )
 }
