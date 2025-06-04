@@ -4,7 +4,6 @@ import { objectIdSchema } from "@/schemas/categoryVerificationSchema";
 import { NextResponse } from "next/server";
 import { categoryVerificationSchema } from "@/schemas/categoryVerificationSchema";
 import { NextRequest } from "next/server";
-
 export async function DELETE(request: Request, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
