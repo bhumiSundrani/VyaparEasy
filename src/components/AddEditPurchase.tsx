@@ -369,11 +369,6 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
         />
       </FormControl>
       <FormMessage />
-      {/* DEBUG: Show current values */}
-      <div className="text-xs text-gray-400 mt-1">
-        ID: {field.value || 'Not set'} | 
-        Name: {watch(`items.${index}.productName`) || 'Not set'}
-      </div>
     </FormItem>
   )}
 />

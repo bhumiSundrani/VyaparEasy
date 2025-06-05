@@ -1,4 +1,5 @@
 import dbConnect from "@/lib/dbConnect";
+import CategoryModel from "@/models/Category.model";
 import { fetchImageForProduct } from "@/lib/fetchImages/fetchImageForProduct";
 import ProductModel from "@/models/Product.model";
 import { productVerificationSchema } from "@/schemas/productVerificationSchema";
