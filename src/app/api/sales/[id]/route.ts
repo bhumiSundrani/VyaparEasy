@@ -4,12 +4,13 @@ import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import mongoose, { ObjectId } from "mongoose";
 
-export async function GET(){
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: ObjectId }> }){
     try {
         await dbConnect();
+        const { id } = await params;
         
         // Ensure Product model is registered
         if (!mongoose.models.Product) {
@@ -19,6 +20,7 @@ export async function GET(){
         const cookieHeader = await cookies()
         const token = cookieHeader.get('token')?.value
         if (!token) {
+          console.log("No token found in cookies");
           return NextResponse.json({
               success: false,
               message: "Unauthorized access"
@@ -27,6 +29,7 @@ export async function GET(){
 
       const decodedToken = await verifyToken(token);
       if (!decodedToken) {
+          console.log("Invalid token");
           return NextResponse.json({
               success: false,
               message: "Invalid token"
@@ -41,21 +44,21 @@ export async function GET(){
           }, { status: 401 });
       }
 
-      const purchases = await TransactionModel.find({userId: user._id, type: "purchase"})
-        // Select all fields except for the nested item.productName which we will handle conditionally
-        .select('-items.productName') // Exclude productName initially
-        .sort({"transactionDate": -1})
+      const sale = await TransactionModel.findById(id)
+        // Exclude productName initially
+        .select('-items.productName')
+        .lean()
 
-      if(purchases.length === 0){
+      if (!sale) {
         return NextResponse.json({
-            success: false,
-            message: "No purchase found"
-        }, {status: 404})
+          success: false,
+          message: "Sale not found"
+        }, { status: 404 });
       }
 
       // Conditionally populate productName for items where it's missing
-      for (const purchase of purchases) {
-        for (const item of purchase.items) {
+      if (sale && sale.items) {
+        for (const item of sale.items) {
           // Check if productName is missing or null/undefined
           if (!item.productName && item.productId) {
             // Populate only this item's productId to get the name
@@ -67,26 +70,34 @@ export async function GET(){
         }
       }
 
-      // Debug logs (optional, you can keep or remove these)
-      console.log("First purchase data after processing:", JSON.stringify(purchases[0], null, 2));
-      console.log("First purchase items after processing:", JSON.stringify(purchases[0].items, null, 2));
+      // Format the purchase data to match PurchaseFormData interface
+      const formattedSale = {
+        _id: sale._id.toString(),
+        paymentType: sale.paymentType,
+        supplier: {
+          name: sale.customer?.name,
+          phone: sale.customer?.phone
+        },
+        items: sale.items.map(item => ({
+          productId: item.productId.toString(),
+          productName: item.productName,
+          quantity: item.quantity,
+          pricePerUnit: item.pricePerUnit
+        })),
+        totalAmount: sale.totalAmount,
+        transactionDate: sale.transactionDate
+      };
 
       return NextResponse.json({
         success: true,
-        message: "Purchases found successfully",
-        purchases,
-        // Add debug info (optional)
-        debug: {
-          totalPurchases: purchases.length,
-          firstPurchaseItemsCount: purchases[0]?.items?.length || 0,
-          firstItemHasProductName: !!purchases[0]?.items?.[0]?.productName
-        }
+        message: "Sale found successfully",
+        sale: formattedSale
       }, {status: 200})
     } catch (error) {
-        console.error("Error finding purchases:", error);
+        console.error("Error finding sale:", error);
         return NextResponse.json({
             success: false,
-            message: error instanceof Error ? error.message : "Error fetching purchases"
+            message: error instanceof Error ? error.message : "Error fetching sale"
         }, {status: 500})
     }
 }

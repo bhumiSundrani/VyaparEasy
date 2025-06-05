@@ -41,21 +41,21 @@ export async function GET(){
           }, { status: 401 });
       }
 
-      const purchases = await TransactionModel.find({userId: user._id, type: "purchase"})
+      const sales = await TransactionModel.find({userId: user._id, type: "sale"})
         // Select all fields except for the nested item.productName which we will handle conditionally
         .select('-items.productName') // Exclude productName initially
         .sort({"transactionDate": -1})
 
-      if(purchases.length === 0){
+      if(sales.length === 0){
         return NextResponse.json({
             success: false,
-            message: "No purchase found"
+            message: "No sale found"
         }, {status: 404})
       }
 
       // Conditionally populate productName for items where it's missing
-      for (const purchase of purchases) {
-        for (const item of purchase.items) {
+      for (const sale of sales) {
+        for (const item of sale.items) {
           // Check if productName is missing or null/undefined
           if (!item.productName && item.productId) {
             // Populate only this item's productId to get the name
@@ -66,27 +66,16 @@ export async function GET(){
           }
         }
       }
-
-      // Debug logs (optional, you can keep or remove these)
-      console.log("First purchase data after processing:", JSON.stringify(purchases[0], null, 2));
-      console.log("First purchase items after processing:", JSON.stringify(purchases[0].items, null, 2));
-
       return NextResponse.json({
         success: true,
-        message: "Purchases found successfully",
-        purchases,
-        // Add debug info (optional)
-        debug: {
-          totalPurchases: purchases.length,
-          firstPurchaseItemsCount: purchases[0]?.items?.length || 0,
-          firstItemHasProductName: !!purchases[0]?.items?.[0]?.productName
-        }
+        message: "Sales found successfully",
+        sales
       }, {status: 200})
     } catch (error) {
-        console.error("Error finding purchases:", error);
+        console.error("Error finding sales:", error);
         return NextResponse.json({
             success: false,
-            message: error instanceof Error ? error.message : "Error fetching purchases"
+            message: error instanceof Error ? error.message : "Error fetching sales"
         }, {status: 500})
     }
 }

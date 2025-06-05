@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const purchaseVerificationSchema = z.object({
+export const salesVerificationSchema = z.object({
     paymentType: z.enum(["cash", "credit"]),
-    supplier: z.object({
+    customer: z.object({
         name: z.string().min(1, "Supplier name is required"),
         phone: z.string().regex(/^[6-9]\d{9}$/, "Phone must be a valid 10-digit Indian number")
     }),
@@ -13,10 +13,6 @@ export const purchaseVerificationSchema = z.object({
         pricePerUnit: z.number().positive("Price must be positive") 
     })).min(1, "At least one item is required"),
     totalAmount: z.number().positive("Total amount must be positive"),
-    otherExpenses: z.array(z.object({
-        name: z.string().min(1, "Expense name is required"),
-        amount: z.number().positive("Amount must be positive")
-    })).optional(),
     transactionDate: z.preprocess(
         arg => typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg, 
         z.date()
