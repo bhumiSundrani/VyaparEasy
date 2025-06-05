@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import UserModel from "@/models/User.model";
+import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -178,6 +179,9 @@ export async function GET(){
     await dbConnect();
     try {
         // Get user from token
+        if (!mongoose.models.Product) {
+                    mongoose.model('Category', CategoryModel.schema);
+        }
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
         if (!token) {
