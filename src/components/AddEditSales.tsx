@@ -25,10 +25,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {PlusCircle, Trash2 } from "lucide-react";
 
-export interface PurchaseFormData {
+export interface SaleFormData {
   _id: string,
   paymentType: 'cash' | "credit";
-  supplier: {
+  customer: {
     name: string,
     phone: string
   },
@@ -39,28 +39,24 @@ export interface PurchaseFormData {
     pricePerUnit: number
   }[],
   totalAmount: number,
-  otherExpenses: {
-    name: string,
-    amount: number
-  }[],
   transactionDate?: Date
 }
 
-const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
+const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
   const router = useRouter()
   
-  const form = useForm<PurchaseFormData>({
+  const form = useForm<SaleFormData>({
     defaultValues: {
-      paymentType: purchase ? purchase.paymentType : "cash",
-      supplier: {
-        name: purchase?.supplier?.name ?? "",
-        phone: purchase?.supplier?.phone ?? ""
+      paymentType: sale ? sale.paymentType : "cash",
+      customer: {
+        name: sale?.customer?.name ?? "",
+        phone: sale?.customer?.phone ?? ""
       },
-      items: purchase ?
-      purchase.items.length > 0 ?
-      purchase.items.map(item => ({
+      items: sale ?
+      sale.items.length > 0 ?
+      sale.items.map(item => ({
         productId: item.productId,
         productName: item.productName,
         quantity: item.quantity,
@@ -77,10 +73,9 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
         quantity: 1,
         pricePerUnit: 0
       }],
-      totalAmount: purchase?.totalAmount ?? 0,
-      otherExpenses: purchase?.otherExpenses ?? [],
-      transactionDate: purchase?.transactionDate
-        ? new Date(purchase.transactionDate)
+      totalAmount: sale?.totalAmount ?? 0,
+      transactionDate: sale?.transactionDate
+        ? new Date(sale.transactionDate)
         : new Date(),
     },
     // ADD VALIDATION MODE
@@ -101,71 +96,50 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
     name: "items",
   })
 
-  const { fields: expenseFields, append: appendExpense, remove: removeExpense } = useFieldArray({
-    control,
-    name: "otherExpenses",
-  });
-
   const items = watch("items");
-  const otherExpenses = useMemo(() => {
-    return watch("otherExpenses") || [];
-  }, [watch]);
 
   const calculateItemsTotal = useCallback(() => {
     return items.reduce((acc, item) => acc + (item.quantity * item.pricePerUnit || 0), 0);
   }, [items]);
 
-  const calculateExpensesTotal = useCallback(() => {
-    return otherExpenses.reduce((acc, exp) => acc + (exp.amount || 0), 0);
-  }, [otherExpenses]);
 
-  const calculateTotalAmount = useCallback(() => {
-    return calculateItemsTotal() + calculateExpensesTotal();
-  }, [calculateItemsTotal, calculateExpensesTotal]);
+  const customerName = form.watch("customer.name");
 
-  // Auto-update total amount when items or expenses change
-  useEffect(() => {
-    const total = calculateTotalAmount();
-    setValue("totalAmount", total, { shouldValidate: false });
-  }, [items, otherExpenses, calculateTotalAmount, setValue]);
-
-  const supplierName = form.watch("supplier.name");
-
-  const onSubmit = async (data: PurchaseFormData) => {
+  const onSubmit = async (data: SaleFormData) => {
     console.log("Data", data)
     setAdding(true);
     try {
-      const endpoint = purchase ? `/api/purchases/edit-purchase/${purchase._id}` : "/api/purchases/add-purchase";
-      const method = purchase ? "put" : "post";
+      const endpoint = sale ? `/api/sales/edit-sales/${sale._id}` : "/api/sales/add-sales";
+      const method = sale ? "put" : "post";
 
       let phone;
-      if(data.supplier.phone.startsWith('+91')){
-        phone = data.supplier.phone.split('+91')[1]
+      if(data.customer.phone.startsWith('+91')){
+        phone = data.customer.phone.split('+91')[1]
       }else {
-        phone = data.supplier.phone
+        phone = data.customer.phone
       }
       
       const response = await axios[method](endpoint, {
         ...data,
-        totalAmount: calculateTotalAmount(),
+        totalAmount: calculateItemsTotal(),
         supplier: {
-          name: data.supplier.name,
+          name: data.customer.name,
           phone: phone
         }
       });
 
       if (response.data.success) {
-        toast.success(purchase ? "Purchase updated successfully!" : "Purchase created successfully!", {
+        toast.success(sale ? "Sale updated successfully!" : "Sale created successfully!", {
           icon: "✅",
         });
-        router.push("/purchases");
+        // router.push("/sales");
       }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       if (axiosError.response?.data?.errors) {
               const errors = axiosError.response.data.errors;
               Object.entries(errors).forEach(([field, message]) => {
-                form.setError(field as keyof PurchaseFormData, {
+                form.setError(field as keyof SaleFormData, {
                   type: "server",
                   message: message as string,
                 });
@@ -191,7 +165,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
             <div className="flex-shrink-0">
               <Image
                 src="/4064925.png"
-                alt="Purchase"
+                alt="Sales"
                 width={48}
                 height={48}
                 className="object-contain w-10 h-10 sm:w-12 sm:h-12"
@@ -199,10 +173,10 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-                Purchase Management
+                Sales Management
               </h1>
               <p className="text-gray-600 text-xs sm:text-sm font-medium -mt-1">
-                {purchase ? "Edit existing purchase details" : "Create a new purchase entry"}
+                {sale ? "Edit existing sales details" : "Create a new sale entry"}
               </p>
             </div>
           </div>
@@ -218,7 +192,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
   <CardHeader className="pb-4">
     <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-      Purchase Information
+      Sales Information
     </CardTitle>
   </CardHeader>
   <CardContent className="space-y-6">
@@ -248,25 +222,25 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
       <div>
         <FormLabel className="text-sm font-medium text-gray-700 mb-2 block">
-          Supplier <span className="text-red-500">*</span>
+          Customer <span className="text-red-500">*</span>
         </FormLabel>
         <SelectParties
-          value={supplierName}
-          onChange={(val) => form.setValue("supplier.name", val)}
+          value={customerName}
+          onChange={(val) => form.setValue("customer.name", val)}
           onSelect={(supplier) => {
-            form.setValue("supplier.name", supplier.name, { shouldValidate: true })
-            form.setValue("supplier.phone", supplier.phone, { shouldValidate: true })
+            form.setValue("customer.name", supplier.name, { shouldValidate: true })
+            form.setValue("customer.phone", supplier.phone, { shouldValidate: true })
           }}
         />
       </div>
 
       <FormField
         control={form.control}
-        name="supplier.phone"
+        name="customer.phone"
         render={({ field }) => (
           <FormItem>
             <FormLabel className="text-sm font-medium text-gray-700">
-              Supplier Phone <span className="text-red-500">*</span>
+              Customer Phone <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
               <Input 
@@ -481,123 +455,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
             </Card>
 
             {/* Other Expenses Section */}
-            <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-semibold text-gray-800 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-orange-500 rounded-full"></div>
-                    Other Expenses
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      Optional
-                    </span>
-                  </div>
-                  <div className="text-sm font-normal text-gray-600 bg-orange-50 px-3 py-1 rounded-full">
-                    Total: ₹{calculateExpensesTotal().toFixed(2)}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {expenseFields.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200">
-                    <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                      <PlusCircle className="h-6 w-6 text-gray-400" />
-                    </div>
-                    <p className="text-sm text-gray-500 mb-4">No additional expenses added</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => appendExpense({ name: "", amount: 0 })}
-                      className="border-dashed border-orange-300 text-orange-600 hover:bg-orange-50"
-                    >
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Add First Expense
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {expenseFields.map((expense, index) => (
-                      <div
-                        key={expense.id}
-                        className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 sm:p-5 border border-gray-100 rounded-xl bg-gray-50/50"
-                      >
-                        <div className="sm:col-span-7">
-                          <FormField
-                            control={form.control}
-                            name={`otherExpenses.${index}.name`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-medium text-gray-600">
-                                  Expense Name <span className="text-red-500">*</span>
-                                </FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="e.g., Transportation, Handling charges" 
-                                    {...field} 
-                                    className="h-10 text-sm border-gray-200 focus:border-blue-400"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="sm:col-span-4">
-                          <FormField
-                            control={form.control}
-                            name={`otherExpenses.${index}.amount`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-medium text-gray-600">
-                                  Amount <span className="text-red-500">*</span>
-                                </FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="0.00" 
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    {...field} 
-                                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                                    className="h-10 text-sm border-gray-200 focus:border-blue-400"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="sm:col-span-1">
-                          <FormLabel className="text-xs font-medium text-gray-600 mb-2 block sm:opacity-0">
-                            Remove
-                          </FormLabel>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeExpense(index)}
-                            className="h-10 w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => appendExpense({ name: "", amount: 0 })}
-                      className="w-full h-12 border-dashed border-2 border-orange-300 text-orange-600 hover:bg-orange-50"
-                    >
-                      <PlusCircle className="h-5 w-5 mr-2" />
-                      Add Another Expense
-                    </Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            
 
             {/* Total Summary */}
             <Card className="shadow-lg border-0 bg-gradient-to-r from-green-50 via-blue-50 to-green-50 border-green-200">
@@ -616,7 +474,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Other Expenses:</span>
-                        <span className="font-medium">₹{calculateExpensesTotal().toFixed(2)}</span>
+                        <span className="font-medium">₹{calculateItemsTotal().toFixed(2)}</span>
                       </div>
                     </div>
                     
@@ -626,7 +484,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                         <div className="flex justify-between items-center">
                           <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
                           <span className="text-2xl font-bold text-green-600">
-                            ₹{calculateTotalAmount().toFixed(2)}
+                            ₹{calculateItemsTotal().toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -644,7 +502,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                 <Input 
                   type="hidden"
                   {...field} 
-                  value={calculateTotalAmount()}
+                  value={calculateItemsTotal()}
                 />
               )}
             />
@@ -673,7 +531,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                         Saving...
                       </>
                     ) : (
-                      purchase ? "Update Purchase" : "Create Purchase"
+                      sale ? "Update Sales" : "Create Sales"
                     )}
                   </Button>
                 </div>
@@ -686,4 +544,4 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
   )
 }
 
-export default PurchaseForm;
+export default SalesForm;
