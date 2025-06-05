@@ -12,7 +12,7 @@ type PageProps = {
 
 const fetchProduct = async (id: string): Promise<ProductFormData | null> => {
   try {
-    const res = await axios.get(`${process.env.NEXT_BASE_URL}/api/products/${id}`);
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${id}`);
     return res.data.product;
   } catch (error) {
     console.log(error)

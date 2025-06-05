@@ -19,7 +19,7 @@ const fetchPurchase = async (id: string): Promise<PurchaseFormData | null> => {
     }
 
     // Make API call with proper headers
-    const res = await fetch(`${process.env.NEXT_BASE_URL}/api/purchases/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/purchases/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

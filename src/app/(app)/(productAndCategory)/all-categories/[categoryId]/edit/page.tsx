@@ -12,7 +12,7 @@ type PageProps = {
 
 const fetchCategory = async (categoryId: string): Promise<CategoryFormData | null> => {
   try {
-    const res = await axios.get(`${process.env.NEXT_BASE_URL}/api/categories/${categoryId}`);
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${categoryId}`);
     return res.data.category;
   } catch (error) {
     console.log(error)

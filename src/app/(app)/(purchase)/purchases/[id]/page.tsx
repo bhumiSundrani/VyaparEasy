@@ -65,7 +65,7 @@ export default function PurchaseViewPage() {
         setLoading(true);
         // Replace with your HTTP client implementation
         // const response = await axios.get(`/api/purchases/${purchaseId}`);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/purchases/${purchaseId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/purchases/${purchaseId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
