@@ -319,65 +319,64 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
                   
                       <div className="lg:col-span-5">
   <FormField
-    control={form.control}
-    name={`items.${index}.productName`} // Use FormField instead of Controller
-    rules={{
-      required: "Please select a product",
-      validate: (value) => {
-        const productId = form.getValues(`items.${index}.productId`);
-        if (!productId) return "Product selection is incomplete";
-        return true;
-      }
-    }}
-    render={({ field }) => (
-      <FormItem>
-        <FormLabel className="text-sm font-medium mb-2 text-gray-700">
-          Product <span className="text-red-600">*</span>
-        </FormLabel>
-        <FormControl>
-          <SelectProducts
-            value={field.value || ""} // Ensure controlled value
-            onChange={(val) => {
-              console.log(`Product name changed for item ${index}:`, val); // DEBUG
-              field.onChange(val); // Update form state
-            }}
-            onSelect={(product) => {
-              console.log(`Product selected for item ${index}:`, product); // DEBUG
-              // Update all product-related fields atomically
-              form.setValue(`items.${index}.productId`, product._id, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-              form.setValue(`items.${index}.productName`, product.name, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-              form.setValue(`items.${index}.quantity`, 0, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-              form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
-                shouldValidate: true,
-                shouldDirty: true,
-                shouldTouch: true
-              });
-            }}
-            displayValue={field.value} // Use field.value directly
-            className="text-sm border-gray-200"
-          />
-        </FormControl>
-        <FormMessage />
-        {/* DEBUG: Show current values */}
-        <div className="text-xs text-gray-400 mt-1">
-          ID: {watch(`items.${index}.productId`) || 'Not set'} | 
-          Name: {field.value || 'Not set'}
-        </div>
-      </FormItem>
-    )}
-  />
+  control={form.control}
+  name={`items.${index}.productId`} // Change to productId instead of productName
+  rules={{
+    required: "Please select a product",
+    validate: (value) => {
+      if (!value) return "Product selection is required";
+      return true;
+    }
+  }}
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel className="text-sm font-medium mb-2 text-gray-700">
+        Product <span className="text-red-600">*</span>
+      </FormLabel>
+      <FormControl>
+        <SelectProducts
+          value={field.value || ""} // This is now the product ID
+          displayValue={watch(`items.${index}.productName`) || ""} // This is the product name for display
+          onChange={(productId) => {
+            console.log(`Product ID changed for item ${index}:`, productId);
+            field.onChange(productId); // Update the productId field
+          }}
+          onSelect={(product) => {
+            console.log(`Product selected for item ${index}:`, product);
+            // Update all product-related fields atomically
+            form.setValue(`items.${index}.productId`, product._id, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+            form.setValue(`items.${index}.productName`, product.name, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+            form.setValue(`items.${index}.quantity`, 0, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+            form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true
+            });
+          }}
+          className="text-sm border-gray-200"
+        />
+      </FormControl>
+      <FormMessage />
+      {/* DEBUG: Show current values */}
+      <div className="text-xs text-gray-400 mt-1">
+        ID: {field.value || 'Not set'} | 
+        Name: {watch(`items.${index}.productName`) || 'Not set'}
+      </div>
+    </FormItem>
+  )}
+/>
 </div>
 
 <div className="lg:col-span-2">

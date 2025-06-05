@@ -210,19 +210,14 @@ export async function GET(){
             select: 'name'
         });
 
-        if(!products){
-            return NextResponse.json({
-                success: false,
-                message: "No product found",
-                products: []
-            }, {status: 200})
-        }
-
-        return NextResponse.json({
-            success: true,
-            message: "Products found successfully",
-            products
-        }, {status: 200})
+        return NextResponse.json(
+      {
+        success: true,
+        message: products.length > 0 ? "Products found successfully" : "No products found",
+        products,
+      },
+      { status: 200 }
+    );
     } catch (error) {
         console.error("Error fetching products:", error);
         return NextResponse.json({

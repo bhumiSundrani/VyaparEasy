@@ -12,8 +12,6 @@ import {
   Edit,
   Trash2,
   Download,
-  Share2,
-  MapPin,
   Clock,
   IndianRupee,
   ShoppingCart,
@@ -89,7 +87,7 @@ export default function PurchaseViewPage() {
   }, [purchaseId]); // purchaseId is the only external dependency now
 
   const handleEdit = () => {
-    router.push(`/purchases/${purchaseId}/edit`);
+    router.push(`/purchases/edit-purchase//${purchaseId}`);
   };
 
   const handleDelete = async () => {

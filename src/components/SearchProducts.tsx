@@ -228,14 +228,14 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
   }, [searchTerm, selectedProduct, results.length, searchProducts])
 
   const getPlaceholder = () => {
-    if (selectedProduct?.name) {
-      return selectedProduct.name
-    }
-    if (displayValue) {
-      return displayValue
-    }
-    return placeholder
+  if (selectedProduct?.name) {
+    return selectedProduct.name
   }
+  if (displayValue && displayValue.trim()) {
+    return displayValue
+  }
+  return placeholder
+}
 
   // Memoized product items for better performance
   const productItems = useMemo(() => {
@@ -348,12 +348,12 @@ export const SelectProducts: React.FC<SelectProductsProps> = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-slate-500 flex-shrink-0" size={16} />
           <CommandInput
-          placeholder={getPlaceholder()}
-          value={searchTerm}
-          onValueChange={handleInputChange}
-          onFocus={handleInputFocus}
-          className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400 bg-inherit"
-        />
+            placeholder={getPlaceholder()}
+            value={searchTerm}
+            onValueChange={handleInputChange}
+            onFocus={handleInputFocus}
+            className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400 bg-inherit"
+          />
           {isLoading && (
             <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 animate-spin flex-shrink-0" size={16} />
           )}
