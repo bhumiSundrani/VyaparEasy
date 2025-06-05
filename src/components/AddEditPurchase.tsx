@@ -162,9 +162,19 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
-      toast.error(axiosError.response?.data.message || "Something went wrong.", {
-        icon: "❌",
-      });
+      if (axiosError.response?.data?.errors) {
+              const errors = axiosError.response.data.errors;
+              Object.entries(errors).forEach(([field, message]) => {
+                form.setError(field as keyof PurchaseFormData, {
+                  type: "server",
+                  message: message as string,
+                });
+              });
+            } else {
+              toast.error(axiosError.response?.data.message || "Something went wrong.", {
+                icon: '❌',
+              });
+            }
     } finally {
       setAdding(false);
     }
@@ -354,7 +364,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
               shouldDirty: true,
               shouldTouch: true
             });
-            form.setValue(`items.${index}.quantity`, 0, {
+            form.setValue(`items.${index}.quantity`, 1, {
               shouldValidate: true,
               shouldDirty: true,
               shouldTouch: true
