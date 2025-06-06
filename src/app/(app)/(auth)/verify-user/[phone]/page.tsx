@@ -69,9 +69,6 @@ export default function Page() {
         })
         // Add a small delay to ensure cookie is set
         try {
-          const userResponse = await axios.get('/api/auth/get-user', {withCredentials: true})
-          console.log('User Response:', userResponse.data) // Debug log
-          
           // Check if we have a valid user object
          if (response.data.user && Object.keys(response.data.user).length > 0) {
             console.log("User already exists with data:", response.data.user)
