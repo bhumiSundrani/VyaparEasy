@@ -29,7 +29,7 @@ export default function Page() {
 
     const timer = setInterval(() => {
       setSeconds(prev => prev-1);
-    }, 1500)
+    }, 1000)
 
     return () => clearInterval(timer)
   }, [seconds])
@@ -74,7 +74,7 @@ export default function Page() {
           // Add a small delay to ensure cookie is set
           setTimeout(() => {
             router.replace('/')
-          }, 100)
+          }, 1000)
         } else {
           console.log("No existing user found, redirecting to signup")
           setPageLoading(true)
