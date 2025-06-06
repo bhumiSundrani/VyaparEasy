@@ -2,13 +2,9 @@ import { verifyToken } from "@/lib/jwtTokenManagement"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function authMiddleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value
-  const pathname = request.nextUrl.pathname
+  const token = request.cookies?.get('token')?.value
 
   if (!token) {
-    if (pathname.startsWith('/verify-user')) {
-      return NextResponse.next()
-    }
     return NextResponse.redirect(new URL('/verify-user', request.url))
   }
 
@@ -17,9 +13,6 @@ export async function authMiddleware(request: NextRequest) {
     console.log(user)
     return NextResponse.next()
   } catch (error) {
-    if (pathname.startsWith('/verify-user')) {
-      return NextResponse.next()
-    }
     return NextResponse.redirect(new URL('/verify-user', request.url))
   }
 }

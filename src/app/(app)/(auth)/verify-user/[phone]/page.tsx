@@ -29,7 +29,7 @@ export default function Page() {
 
     const timer = setInterval(() => {
       setSeconds(prev => prev-1);
-    }, 1000)
+    }, 1500)
 
     return () => clearInterval(timer)
   }, [seconds])
@@ -67,16 +67,19 @@ export default function Page() {
         toast.success('OTP Verified Successfully!', {
           icon: '✅',
         })
-          // Check if we have a valid user object
-         if (response.data.user && Object.keys(response.data.user).length > 0) {
-            console.log("User already exists with data:", response.data.user)
-            setPageLoading(true)
+        // Check if we have a valid user object
+        if (response.data.user && Object.keys(response.data.user).length > 0) {
+          console.log("User already exists with data:", response.data.user)
+          setPageLoading(true)
+          // Add a small delay to ensure cookie is set
+          setTimeout(() => {
             router.replace('/')
-          } else {
-            console.log("No existing user found, redirecting to signup")
-            setPageLoading(true)
-            router.replace(`/verify-user/sign-up/${phone}`) // or wherever new users should go
-          }
+          }, 100)
+        } else {
+          console.log("No existing user found, redirecting to signup")
+          setPageLoading(true)
+          router.replace(`/verify-user/sign-up/${phone}`)
+        }
       } else {
         toast.error(response.data.message || 'Failed to verify OTP', {
           icon: '❌',
