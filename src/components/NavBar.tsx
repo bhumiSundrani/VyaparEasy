@@ -19,9 +19,9 @@ export default function Navbar() {
   const user = useSelector((state : RootState) => state.auth.user)
   const [pageLoading, setPageLoading] = useState(true)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      axios.post('/api/auth/logout')
+      await axios.post('/api/auth/logout')
       setPageLoading(true)
       router.push('/verify-user');
     } catch (error) {

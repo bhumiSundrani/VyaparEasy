@@ -68,20 +68,19 @@ export default function Page() {
           icon: '✅',
         })
         // Add a small delay to ensure cookie is set
-        await new Promise(resolve => setTimeout(resolve, 1000));
         try {
           const userResponse = await axios.get('/api/auth/get-user', {withCredentials: true})
           console.log('User Response:', userResponse.data) // Debug log
           
           // Check if we have a valid user object
-          if (userResponse.data.success && userResponse.data.user && Object.keys(userResponse.data.user).length > 0) {
-            console.log("User already exists with data:", userResponse.data.user)
+         if (response.data.user && Object.keys(response.data.user).length > 0) {
+            console.log("User already exists with data:", response.data.user)
             setPageLoading(true)
             router.replace('/')
           } else {
             console.log("No existing user found, redirecting to signup")
             setPageLoading(true)
-            router.replace(`/verify-user/sign-up/${phone}`)
+            router.replace('/sign-up') // or wherever new users should go
           }
         } catch (error) {
           const axiosError = error as AxiosError

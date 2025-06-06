@@ -7,11 +7,11 @@ export async function allowIfAuthenticatedMiddleware(request: NextRequest) {
 
   try {
     const user = await verifyToken(token)
-    // If user is authenticated, redirect them away from auth pages
-    if (user) return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (user) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return NextResponse.next()
   } catch (error) {
     return NextResponse.next()
   }
-
-  return NextResponse.next()
 }
