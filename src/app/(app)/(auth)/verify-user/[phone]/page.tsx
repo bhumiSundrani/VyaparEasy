@@ -59,9 +59,12 @@ export default function Page() {
       return
     }
     try {
+      console.log('Sending OTP verification request...')
       const response = await axios.post('/api/auth/verify-otp', {phone: phone, otp: otp}, {
         withCredentials: true
       })
+
+      console.log('OTP verification response:', response.data)
 
       if (response.data.success) {
         toast.success('OTP Verified Successfully!', {
@@ -73,6 +76,7 @@ export default function Page() {
           setPageLoading(true)
           // Add a small delay to ensure cookie is set
           setTimeout(() => {
+            console.log('Redirecting to home page...')
             router.replace('/')
           }, 1000)
         } else {
@@ -81,11 +85,13 @@ export default function Page() {
           router.replace(`/verify-user/sign-up/${phone}`)
         }
       } else {
+        console.error('OTP verification failed:', response.data.message)
         toast.error(response.data.message || 'Failed to verify OTP', {
           icon: '❌',
         })
       }
     } catch (err) {
+      console.error('Error during OTP verification:', err)
       const axiosError = err as AxiosError<ApiResponse>
       toast.error(axiosError.response?.data.message || 'Something went wrong', {
         icon: '❌',

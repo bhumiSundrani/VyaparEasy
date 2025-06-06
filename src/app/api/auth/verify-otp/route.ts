@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
             }
 
             // Set cookie for authentication
-            const cookie = `token=${token}; HttpOnly; SameSite=${process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax'}; Max-Age=${7 * 24 * 60 * 60}; Path=/; Domain=${process.env.NODE_ENV === 'production' ? process.env.DOMAIN : 'localhost'}; Secure=${process.env.NODE_ENV === 'production' ? 'true' : 'false'}`;
+            const cookie = `token=${token}; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}; Path=/`;
 
             const response = NextResponse.json({
                 success: true,
