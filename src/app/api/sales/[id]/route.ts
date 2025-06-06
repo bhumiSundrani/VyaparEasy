@@ -74,7 +74,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const formattedSale = {
         _id: sale._id.toString(),
         paymentType: sale.paymentType,
-        supplier: {
+        customer: {
           name: sale.customer?.name,
           phone: sale.customer?.phone
         },

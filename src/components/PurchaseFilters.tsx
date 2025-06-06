@@ -49,7 +49,8 @@ interface FilterComponentProps {
   onFiltersChange: (filters: PurchaseFilters) => void
   onClearFilters: () => void
   suppliers?: string[]
-  loading?: boolean
+  loading?: boolean,
+  label: string
 }
 
 const PurchaseFilters: React.FC<FilterComponentProps> = ({
@@ -57,7 +58,8 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
   onFiltersChange,
   onClearFilters,
   suppliers = [],
-  loading = false
+  loading = false,
+  label
 }) => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [activeFiltersCount, setActiveFiltersCount] = useState(0)
@@ -121,8 +123,7 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
   const sortOptions = [
     { value: 'date', label: 'Date' },
     { value: 'amount', label: 'Amount' },
-    { value: 'supplier', label: 'Supplier' },
-    { value: 'invoiceNumber', label: 'Invoice Number' }
+    { value: 'supplier', label: label },
   ]
 
   return (

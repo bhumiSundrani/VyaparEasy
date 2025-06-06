@@ -7,7 +7,7 @@ import {
   CommandList,
   CommandItem,
 } from "@/components/ui/command"
-import React, { useEffect, useState, useCallback, useMemo } from "react"
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { useDebounce } from "@uidotdev/usehooks"
 import axios from "axios"
 import { Search, User, Building2, Phone, Calendar, DollarSign, Loader2, AlertCircle, Plus, UserPlus } from "lucide-react"
@@ -51,7 +51,9 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cache, setCache] = useState<Map<string, Party[]>>(new Map())
-  const [currentSearchTerm, setCurrentSearchTerm] = useState<string>('') // Track current search
+  
+  // Use useRef to track the current search term to avoid stale closures
+  const currentSearchRef = useRef<string>('')
   
   const debouncedSearchTerm = useDebounce(value, 250)
 
@@ -59,12 +61,12 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
   const searchParties = useCallback(async (searchTerm: string) => {
     if (!searchTerm.trim()) {
       setResults([])
-      setCurrentSearchTerm('')
+      currentSearchRef.current = ''
       return
     }
 
     // Update current search term
-    setCurrentSearchTerm(searchTerm)
+    currentSearchRef.current = searchTerm
 
     // Check cache first
     if (cache.has(searchTerm)) {
@@ -82,17 +84,20 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-      const res = await axios.get(`/api/parties?q=${encodeURIComponent(searchTerm)}`, {
-        signal: controller.signal,
-        headers: {
-          'Cache-Control': 'no-cache',
+      const res = await axios.post(`/api/parties?q=${encodeURIComponent(searchTerm)}`, 
+        { type: defaultPartyType }, 
+        {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+          }
         }
-      })
+      )
 
       clearTimeout(timeoutId)
       
       // Only update results if this is still the current search
-      if (searchTerm === currentSearchTerm) {
+      if (searchTerm === currentSearchRef.current) {
         const parties = res.data.parties || []
         setResults(parties)
         
@@ -105,7 +110,7 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
         console.log('Search request cancelled')
       } else {
         // Only show error if this is still the current search
-        if (searchTerm === currentSearchTerm) {
+        if (searchTerm === currentSearchRef.current) {
           setError('Failed to search parties. Please try again.')
           setResults([])
         }
@@ -113,11 +118,11 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
       }
     } finally {
       // Only update loading state if this is still the current search
-      if (searchTerm === currentSearchTerm) {
+      if (searchTerm === currentSearchRef.current) {
         setIsLoading(false)
       }
     }
-  }, [cache, currentSearchTerm])
+  }, [cache, defaultPartyType]) // Remove currentSearchTerm from dependencies
 
   useEffect(() => {
     searchParties(debouncedSearchTerm)
@@ -258,9 +263,9 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
     return results.length > 0 && 
            !isLoading && 
            !isCreating && 
-           currentSearchTerm.trim() !== '' &&
-           currentSearchTerm === debouncedSearchTerm // Only show when search is complete
-  }, [results.length, isLoading, isCreating, currentSearchTerm, debouncedSearchTerm])
+           currentSearchRef.current.trim() !== '' &&
+           currentSearchRef.current === debouncedSearchTerm // Only show when search is complete
+  }, [results.length, isLoading, isCreating, debouncedSearchTerm])
 
   return (
     <div className={`relative ${className}`}>
@@ -329,8 +334,12 @@ export const SelectParties: React.FC<SelectPartiesProps> = ({
                         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm">
                           <Plus size={16} />
                         </div>
-                        
-                        <UserPlus size={16} className="text-blue-500" />
+                        <div className="flex items-center space-x-2">
+                          <UserPlus size={16} className="text-blue-500" />
+                          <span className="font-medium text-blue-700 dark:text-blue-300">
+                            Create &quot;{value.trim()}&quot;
+                          </span>
+                        </div>
                       </CommandItem>
                     )}
                   </>

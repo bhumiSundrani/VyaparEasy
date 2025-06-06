@@ -23,7 +23,8 @@ import { SelectParties } from "@/components/SearchParties";
 import { SelectProducts } from "@/components/SearchProducts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {PlusCircle, Trash2 } from "lucide-react";
+import {PlusCircle, Trash2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface SaleFormData {
   _id: string,
@@ -45,7 +46,12 @@ export interface SaleFormData {
 const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
+  const [submitErrors, setSubmitErrors] = useState<string[]>([])
   const router = useRouter()
+  
+  // Debug logging for the SelectParties issue
+  console.log('Sale data:', sale);
+  console.log('Customer name from sale:', sale?.customer?.name);
   
   const form = useForm<SaleFormData>({
     defaultValues: {
@@ -63,13 +69,13 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         pricePerUnit: item.pricePerUnit
       })) : [{
         productId: "",
-        productName: "", // ADD THIS MISSING FIELD
+        productName: "",
         quantity: 1,
         pricePerUnit: 0
       }]
       : [{
         productId: "",
-        productName: "", // ADD THIS MISSING FIELD
+        productName: "",
         quantity: 1,
         pricePerUnit: 0
       }],
@@ -78,17 +84,15 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         ? new Date(sale.transactionDate)
         : new Date(),
     },
-    // ADD VALIDATION MODE
     mode: 'onChange',
-    // ADD VALIDATION RULES
-    resolver: undefined // You should add proper validation here
   });
 
   const {
     control,
-    setValue,
     watch,
     formState: { errors },
+    setError,
+    clearErrors
   } = form;
 
   const {fields: itemFields, append: appendItem, remove: removeItem} = useFieldArray({
@@ -102,27 +106,80 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
     return items.reduce((acc, item) => acc + (item.quantity * item.pricePerUnit || 0), 0);
   }, [items]);
 
-
   const customerName = form.watch("customer.name");
 
+  // Client-side validation function
+  const validateForm = (data: SaleFormData): string[] => {
+    const errors: string[] = [];
+    
+    // Validate customer name
+    if (!data.customer.name.trim()) {
+      errors.push("Customer name is required");
+    }
+    
+    // Validate customer phone
+    if (!data.customer.phone.trim()) {
+      errors.push("Customer phone number is required");
+    }
+    
+    // Validate items
+    if (!data.items || data.items.length === 0) {
+      errors.push("At least one item is required");
+    } else {
+      data.items.forEach((item, index) => {
+        if (!item.productId) {
+          errors.push(`Product is required for item ${index + 1}`);
+        }
+        if (!item.quantity || item.quantity <= 0) {
+          errors.push(`Valid quantity is required for item ${index + 1}`);
+        }
+        if (!item.pricePerUnit || item.pricePerUnit <= 0) {
+          errors.push(`Valid price is required for item ${index + 1}`);
+        }
+      });
+    }
+    
+    // Validate total amount
+    const calculatedTotal = data.items.reduce((acc, item) => acc + (item.quantity * item.pricePerUnit || 0), 0);
+    if (calculatedTotal <= 0) {
+      errors.push("Total amount must be greater than 0");
+    }
+    
+    return errors;
+  };
+
   const onSubmit = async (data: SaleFormData) => {
-    console.log("Data", data)
+    console.log("Submitting data:", data);
+    
+    // Clear previous errors
+    setSubmitErrors([]);
+    clearErrors();
+    
+    // Client-side validation
+    const validationErrors = validateForm(data);
+    if (validationErrors.length > 0) {
+      setSubmitErrors(validationErrors);
+      toast.error("Please fix the validation errors", {
+        icon: '❌',
+      });
+      return;
+    }
+    
     setAdding(true);
+    
     try {
       const endpoint = sale ? `/api/sales/edit-sales/${sale._id}` : "/api/sales/add-sales";
       const method = sale ? "put" : "post";
 
-      let phone;
-      if(data.customer.phone.startsWith('+91')){
-        phone = data.customer.phone.split('+91')[1]
-      }else {
-        phone = data.customer.phone
+      let phone = data.customer.phone;
+      if(phone.startsWith('+91')){
+        phone = phone.split('+91')[1];
       }
       
       const response = await axios[method](endpoint, {
         ...data,
         totalAmount: calculateItemsTotal(),
-        supplier: {
+        customer: {  // Fixed: was sending 'supplier' instead of 'customer'
           name: data.customer.name,
           phone: phone
         }
@@ -132,27 +189,50 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         toast.success(sale ? "Sale updated successfully!" : "Sale created successfully!", {
           icon: "✅",
         });
-        // router.push("/sales");
+         setPageLoading(true)
+        router.push("/sales");
       }
     } catch (error) {
+      console.error("Submit error:", error);
       const axiosError = error as AxiosError<ApiResponse>;
+      
+      // Handle validation errors from server
       if (axiosError.response?.data?.errors) {
-              const errors = axiosError.response.data.errors;
-              Object.entries(errors).forEach(([field, message]) => {
-                form.setError(field as keyof SaleFormData, {
-                  type: "server",
-                  message: message as string,
-                });
-              });
-            } else {
-              toast.error(axiosError.response?.data.message || "Something went wrong.", {
-                icon: '❌',
-              });
-            }
+        const serverErrors = axiosError.response.data.errors;
+        const errorMessages: string[] = [];
+        
+        Object.entries(serverErrors).forEach(([field, message]) => {
+          errorMessages.push(`${field}: ${message}`);
+          // Set individual field errors
+          setError(field as keyof SaleFormData, {
+            type: "server",
+            message: message as string,
+          });
+        });
+        
+        setSubmitErrors(errorMessages);
+        toast.error("Please fix the validation errors", {
+          icon: '❌',
+        });
+      } else {
+        // Handle general errors
+        const errorMessage = axiosError.response?.data?.message || "Something went wrong while saving the sale.";
+        setSubmitErrors([errorMessage]);
+        toast.error(errorMessage, {
+          icon: '❌',
+        });
+      }
     } finally {
       setAdding(false);
     }
   }
+
+  // Effect to clear submit errors when form data changes
+  useEffect(() => {
+    if (submitErrors.length > 0) {
+      setSubmitErrors([]);
+    }
+  }, [submitErrors, customerName, items]);
 
   if(pageLoading) return <Loader/>
 
@@ -182,6 +262,21 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
           </div>
         </div>
 
+        {/* Error Display */}
+        {submitErrors.length > 0 && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <div className="font-medium mb-2">Please fix the following errors:</div>
+              <ul className="list-disc list-inside space-y-1">
+                {submitErrors.map((error, index) => (
+                  <li key={index} className="text-sm">{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -189,97 +284,115 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
           >
             {/* Basic Information Card */}
             <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
-  <CardHeader className="pb-4">
-    <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-      Sales Information
-    </CardTitle>
-  </CardHeader>
-  <CardContent className="space-y-6">
-    {/* First Row - Payment Type */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      <FormField
-        control={form.control}
-        name="paymentType"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-medium text-gray-700">
-              Payment Type <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <SelectPaymentType
-                value={field.value}
-                onChange={(value: string) => field.onChange(value)}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  Sales Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* First Row - Payment Type */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <FormField
+                    control={form.control}
+                    name="paymentType"
+                    rules={{ required: "Payment type is required" }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Payment Type <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <SelectPaymentType
+                            value={field.value}
+                            onChange={(value: string) => field.onChange(value)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-    {/* Second Row - Supplier Information */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <div>
-        <FormLabel className="text-sm font-medium text-gray-700 mb-2 block">
-          Customer <span className="text-red-500">*</span>
-        </FormLabel>
-        <SelectParties
-          value={customerName}
-          onChange={(val) => form.setValue("customer.name", val)}
-          onSelect={(supplier) => {
-            form.setValue("customer.name", supplier.name, { shouldValidate: true })
-            form.setValue("customer.phone", supplier.phone, { shouldValidate: true })
-          }}
-        />
-      </div>
+                {/* Second Row - Customer Information */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <FormLabel className="text-sm font-medium text-gray-700 mb-2 block">
+                      Customer <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <SelectParties
+                      defaultPartyType="customer"
+                      value={customerName}
+                      onChange={(val) => {
+                        console.log('Customer name changed to:', val);
+                        form.setValue("customer.name", val, { shouldValidate: true });
+                      }}
+                      onSelect={(customer) => {
+                        console.log('Customer selected:', customer);
+                        form.setValue("customer.name", customer.name, { shouldValidate: true });
+                        form.setValue("customer.phone", customer.phone, { shouldValidate: true });
+                      }}
+                      placeholder="Search customers..."
+                    />
+                    {errors.customer?.name && (
+                      <p className="text-sm text-red-600 mt-1">{errors.customer.name.message}</p>
+                    )}
+                  </div>
 
-      <FormField
-        control={form.control}
-        name="customer.phone"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-medium text-gray-700">
-              Customer Phone <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Enter supplier phone number" 
-                {...field} 
-                className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+                  <FormField
+                    control={form.control}
+                    name="customer.phone"
+                    rules={{ 
+                      required: "Customer phone is required",
+                      pattern: {
+                        value: /^[\+]?[0-9\s\-\(\)]{10,}$/,
+                        message: "Please enter a valid phone number"
+                      }
+                    }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Customer Phone <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter customer phone number" 
+                            {...field} 
+                            className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-    {/* Third Row - Transaction Date */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      <FormField
-        control={form.control}
-        name="transactionDate"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-medium text-gray-700">
-              Transaction Date
-            </FormLabel>
-            <FormControl>
-              <Input
-                type="date"
-                value={field.value ? new Date(field.value).toISOString().split("T")[0] : ""}
-                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
-                className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  </CardContent>
-</Card>
+                {/* Third Row - Transaction Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <FormField
+                    control={form.control}
+                    name="transactionDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Transaction Date
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            value={field.value ? new Date(field.value).toISOString().split("T")[0] : ""}
+                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
+                            className="h-11 text-sm border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Items Section */}
             <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
               <CardHeader className="pb-4">
@@ -299,79 +412,68 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                     key={item.id}
                     className="grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 sm:p-5 border border-gray-100 rounded-xl bg-gray-50/50"
                   >
-                    {/* Product Selection - Full width on mobile, 5 cols on desktop */}
-                  
-                      <div className="lg:col-span-5">
-  <FormField
-  control={form.control}
-  name={`items.${index}.productId`} // Change to productId instead of productName
-  rules={{
-    required: "Please select a product",
-    validate: (value) => {
-      if (!value) return "Product selection is required";
-      return true;
-    }
-  }}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel className="text-sm font-medium mb-2 text-gray-700">
-        Product <span className="text-red-600">*</span>
-      </FormLabel>
-      <FormControl>
-        <SelectProducts
-          value={field.value || ""} // This is now the product ID
-          displayValue={watch(`items.${index}.productName`) || ""} // This is the product name for display
-          onChange={(productId) => {
-            console.log(`Product ID changed for item ${index}:`, productId);
-            field.onChange(productId); // Update the productId field
-          }}
-          onSelect={(product) => {
-            console.log(`Product selected for item ${index}:`, product);
-            // Update all product-related fields atomically
-            form.setValue(`items.${index}.productId`, product._id, {
-              shouldValidate: true,
-              shouldDirty: true,
-              shouldTouch: true
-            });
-            form.setValue(`items.${index}.productName`, product.name, {
-              shouldValidate: true,
-              shouldDirty: true,
-              shouldTouch: true
-            });
-            form.setValue(`items.${index}.quantity`, 1, {
-              shouldValidate: true,
-              shouldDirty: true,
-              shouldTouch: true
-            });
-            form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
-              shouldValidate: true,
-              shouldDirty: true,
-              shouldTouch: true
-            });
-          }}
-          className="text-sm border-gray-200"
-        />
-      </FormControl>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-</div>
+                    {/* Product Selection */}
+                    <div className="lg:col-span-5">
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.productId`}
+                        rules={{
+                          required: "Please select a product",
+                        }}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium mb-2 text-gray-700">
+                              Product <span className="text-red-600">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <SelectProducts
+                                value={field.value || ""}
+                                displayValue={watch(`items.${index}.productName`) || ""}
+                                onChange={(productId) => {
+                                  field.onChange(productId);
+                                }}
+                                onSelect={(product) => {
+                                  form.setValue(`items.${index}.productId`, product._id, {
+                                    shouldValidate: true,
+                                  });
+                                  form.setValue(`items.${index}.productName`, product.name, {
+                                    shouldValidate: true,
+                                  });
+                                  form.setValue(`items.${index}.quantity`, 1, {
+                                    shouldValidate: true,
+                                  });
+                                  form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
+                                    shouldValidate: true,
+                                  });
+                                }}
+                                className="text-sm border-gray-200"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-<div className="lg:col-span-2">
+                    {/* Quantity */}
+                    <div className="lg:col-span-2">
                       <FormField
                         control={form.control}
                         name={`items.${index}.quantity`}
+                        rules={{
+                          required: "Quantity is required",
+                          min: { value: 1, message: "Quantity must be at least 1" }
+                        }}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel   className="text-sm font-medium text-gray-700">
+                            <FormLabel className="text-sm font-medium text-gray-700">
                               Quantity <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Quantity" 
                                 type="number"
-                                min="0"
+                                min="1"
                                 step="1"
                                 {...field} 
                                 onChange={(e) => field.onChange(Number(e.target.value))}
@@ -389,9 +491,13 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                       <FormField
                         control={form.control}
                         name={`items.${index}.pricePerUnit`}
+                        rules={{
+                          required: "Price is required",
+                          min: { value: 0.01, message: "Price must be greater than 0" }
+                        }}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel   className="text-sm font-medium text-gray-700">
+                            <FormLabel className="text-sm font-medium text-gray-700">
                               Price/Unit <span className="text-red-500">*</span>
                             </FormLabel>
                             <FormControl>
@@ -413,7 +519,7 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
 
                     {/* Total */}
                     <div className="lg:col-span-2">
-                      <FormLabel  className="text-sm font-medium text-gray-700">
+                      <FormLabel className="text-sm font-medium text-gray-700">
                         Total
                       </FormLabel>
                       <div className="h-10 flex items-center text-sm font-semibold text-green-600 bg-green-50 rounded-md px-3">
@@ -454,9 +560,6 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
               </CardContent>
             </Card>
 
-            {/* Other Expenses Section */}
-            
-
             {/* Total Summary */}
             <Card className="shadow-lg border-0 bg-gradient-to-r from-green-50 via-blue-50 to-green-50 border-green-200">
               <CardContent className="p-6">
@@ -470,10 +573,6 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Items Subtotal:</span>
-                        <span className="font-medium">₹{calculateItemsTotal().toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Other Expenses:</span>
                         <span className="font-medium">₹{calculateItemsTotal().toFixed(2)}</span>
                       </div>
                     </div>

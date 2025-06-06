@@ -23,7 +23,8 @@ import { SelectParties } from "@/components/SearchParties";
 import { SelectProducts } from "@/components/SearchProducts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {PlusCircle, Trash2 } from "lucide-react";
+import {AlertCircle, PlusCircle, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "./ui/alert";
 
 export interface PurchaseFormData {
   _id: string,
@@ -49,6 +50,7 @@ export interface PurchaseFormData {
 const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
+  const [submitErrors, setSubmitErrors] = useState<string[]>([])
   const router = useRouter()
   
   const form = useForm<PurchaseFormData>({
@@ -94,6 +96,8 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
     setValue,
     watch,
     formState: { errors },
+    setError,
+    clearErrors
   } = form;
 
   const {fields: itemFields, append: appendItem, remove: removeItem} = useFieldArray({
@@ -131,8 +135,59 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
 
   const supplierName = form.watch("supplier.name");
 
+   const validateForm = (data: PurchaseFormData): string[] => {
+      const errors: string[] = [];
+      
+      // Validate customer name
+      if (!data.supplier.name.trim()) {
+        errors.push("Supplier name is required");
+      }
+      
+      // Validate customer phone
+      if (!data.supplier.phone.trim()) {
+        errors.push("Supplier phone number is required");
+      }
+      
+      // Validate items
+      if (!data.items || data.items.length === 0) {
+        errors.push("At least one item is required");
+      } else {
+        data.items.forEach((item, index) => {
+          if (!item.productId) {
+            errors.push(`Product is required for item ${index + 1}`);
+          }
+          if (!item.quantity || item.quantity <= 0) {
+            errors.push(`Valid quantity is required for item ${index + 1}`);
+          }
+          if (!item.pricePerUnit || item.pricePerUnit <= 0) {
+            errors.push(`Valid price is required for item ${index + 1}`);
+          }
+        });
+      }
+      
+      // Validate total amount
+      const calculatedTotal = calculateTotalAmount()
+      if (calculatedTotal <= 0) {
+        errors.push("Total amount must be greater than 0");
+      }
+      
+      return errors;
+    };
+
   const onSubmit = async (data: PurchaseFormData) => {
     console.log("Data", data)
+    setSubmitErrors([])
+    clearErrors()
+
+    const validationErrors = validateForm(data);
+    if (validationErrors.length > 0) {
+      setSubmitErrors(validationErrors);
+      toast.error("Please fix the validation errors", {
+        icon: '❌',
+      });
+      return;
+    }
+
     setAdding(true);
     try {
       const endpoint = purchase ? `/api/purchases/edit-purchase/${purchase._id}` : "/api/purchases/add-purchase";
@@ -158,20 +213,34 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
         toast.success(purchase ? "Purchase updated successfully!" : "Purchase created successfully!", {
           icon: "✅",
         });
+        setPageLoading(true)
         router.push("/purchases");
+
       }
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;
       if (axiosError.response?.data?.errors) {
-              const errors = axiosError.response.data.errors;
-              Object.entries(errors).forEach(([field, message]) => {
-                form.setError(field as keyof PurchaseFormData, {
+              const serverErrors = axiosError.response.data.errors;
+              const errorMessages: string[] = [];
+              
+              Object.entries(serverErrors).forEach(([field, message]) => {
+                errorMessages.push(`${field}: ${message}`);
+                // Set individual field errors
+                setError(field as keyof PurchaseFormData, {
                   type: "server",
                   message: message as string,
                 });
               });
-            } else {
-              toast.error(axiosError.response?.data.message || "Something went wrong.", {
+              
+              setSubmitErrors(errorMessages);
+              toast.error("Please fix the validation errors", {
+                icon: '❌',
+              });
+      }else {
+              // Handle general errors
+              const errorMessage = axiosError.response?.data?.message || "Something went wrong while saving the sale.";
+              setSubmitErrors([errorMessage]);
+              toast.error(errorMessage, {
                 icon: '❌',
               });
             }
@@ -179,6 +248,12 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
       setAdding(false);
     }
   }
+
+  useEffect(() => {
+      if (submitErrors.length > 0) {
+        setSubmitErrors([]);
+      }
+    }, [submitErrors, supplierName, items]);
 
   if(pageLoading) return <Loader/>
 
@@ -207,6 +282,21 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
             </div>
           </div>
         </div>
+
+        {submitErrors.length > 0 && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <div className="font-medium mb-2">Please fix the following errors:</div>
+              <ul className="list-disc list-inside space-y-1">
+                {submitErrors.map((error, index) => (
+                  <li key={index} className="text-sm">{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
 
         <Form {...form}>
           <form
@@ -251,6 +341,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
           Supplier <span className="text-red-500">*</span>
         </FormLabel>
         <SelectParties
+          defaultPartyType="vendor"
           value={supplierName}
           onChange={(val) => form.setValue("supplier.name", val)}
           onSelect={(supplier) => {
@@ -258,6 +349,9 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
             form.setValue("supplier.phone", supplier.phone, { shouldValidate: true })
           }}
         />
+        {errors.supplier?.name && (
+                      <p className="text-sm text-red-600 mt-1">{errors.supplier.name.message}</p>
+                    )}
       </div>
 
       <FormField

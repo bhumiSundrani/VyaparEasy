@@ -3,11 +3,11 @@
 import { DataTable } from '@/components/DataTable'
 import React, { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
-import { PurchaseColumnData, PurchaseColumns } from '@/tanstackColumns/purchaseColumn'
 import { useRouter } from 'next/navigation'
 import axios, { AxiosError } from 'axios'
 import { ApiResponse } from '@/types/ApiResponse'
 import PurchaseFilterOptions from '@/components/PurchaseFilters' // Import the filter component
+import { SaleColumn, SaleColumnData } from '@/tanstackColumns/saleColumn'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 
@@ -31,9 +31,9 @@ interface PurchaseFilters {
 
 function PurchasePage() {
     const router = useRouter()
-    const [purchase, setPurchase] = useState<PurchaseColumnData[]>([])
+    const [sale, setSale] = useState<SaleColumnData[]>([])
     const [loading, setLoading] = useState(true)
-    const [suppliers, setSuppliers] = useState<string[]>([])
+    const [customers, setCustomers] = useState<string[]>([])
     const [redirecting, setRedirecting] = useState(false)
     
     // Filter state
@@ -50,20 +50,20 @@ function PurchasePage() {
 
     // Fetch purchases
     useEffect(() => {
-        const fetchPurchase = async () => {
+        const fetchSale = async () => {
             setLoading(true)
             try {
-                const res = await axios.get('/api/purchases')
-                const purchaseResponse = res.data.purchases as PurchaseColumnData[]
-                setPurchase(purchaseResponse)
+                const res = await axios.get('/api/sales')
+                const saleResponse = res.data.sales as SaleColumnData[]
+                setSale(saleResponse)
                 
                 // Extract unique suppliers for filter dropdown
-                const uniqueSuppliers = [...new Set(
-                    purchaseResponse
-                        .map(p => p.supplier?.name)
+                const uniqueCustomers = [...new Set(
+                    saleResponse
+                        .map(p => p.customer?.name)
                         .filter(Boolean)
                 )] as string[]
-                setSuppliers(uniqueSuppliers)
+                setCustomers(uniqueCustomers)
                 
             } catch (error) {
                 const axiosError = error as AxiosError<ApiResponse>
@@ -72,18 +72,18 @@ function PurchasePage() {
                 setLoading(false)
             }
         }
-        fetchPurchase()
+        fetchSale()
     }, [])
 
     // Filter and sort logic
     const filteredAndSortedPurchases = useMemo(() => {
-        let filtered = [...purchase]
+        let filtered = [...sale]
 
         // Apply search filter
         if (filters.searchTerm) {
             const searchLower = filters.searchTerm.toLowerCase()
             filtered = filtered.filter(p => 
-                p.supplier?.name?.toLowerCase().includes(searchLower) ||
+                p.customer?.name?.toLowerCase().includes(searchLower) ||
                 p.items?.some(item => 
                     item.productName?.toLowerCase().includes(searchLower)
                 )
@@ -119,7 +119,7 @@ function PurchasePage() {
         // Apply supplier filter
         if (filters.supplier) {
             filtered = filtered.filter(p => 
-                p.supplier?.name === filters.supplier
+                p.customer?.name === filters.supplier
             )
         }
 
@@ -143,8 +143,8 @@ function PurchasePage() {
                     bValue = b.totalAmount || 0
                     break
                 case 'supplier':
-                    aValue = a.supplier?.name || ''
-                    bValue = b.supplier?.name || ''
+                    aValue = a.customer?.name || ''
+                    bValue = b.customer?.name || ''
                     break
                 default:
                     aValue = new Date(a.transactionDate)
@@ -157,7 +157,7 @@ function PurchasePage() {
         })
 
         return filtered
-    }, [purchase, filters])
+    }, [sale, filters])
 
     // Handle filter changes
     const handleFiltersChange = (newFilters: PurchaseFilters) => {
@@ -179,21 +179,21 @@ function PurchasePage() {
     }
 
     // Handle purchase deletion
-    const handlePurchaseDeleted = () => {
-        const fetchPurchase = async () => {
+    const handleSaleDeleted = () => {
+        const fetchSale = async () => {
             setLoading(true)
             try {
-                const res = await axios.get('/api/purchases')
-                const purchaseResponse = res.data.purchases as PurchaseColumnData[]
-                setPurchase(purchaseResponse)
+                const res = await axios.get('/api/sales')
+                const saleResponse = res.data.sales as SaleColumnData[]
+                setSale(saleResponse)
                 
                 // Update suppliers list
-                const uniqueSuppliers = [...new Set(
-                    purchaseResponse
-                        .map(p => p.supplier?.name)
+                const uniqueCustomers = [...new Set(
+                    saleResponse
+                        .map(p => p.customer?.name)
                         .filter(Boolean)
                 )] as string[]
-                setSuppliers(uniqueSuppliers)
+                setCustomers(uniqueCustomers)
                 
             } catch (error) {
                 const axiosError = error as AxiosError<ApiResponse>
@@ -202,7 +202,7 @@ function PurchasePage() {
                 setLoading(false)
             }
         }
-        fetchPurchase()
+        fetchSale()
     }
 
     return (
@@ -217,7 +217,7 @@ function PurchasePage() {
                         height={30}
                         className="object-contain sm:h-[40px] sm:w-[40px]"
                     />              
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Purchase Management</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Sale Management</h1>
                 </div>
                 
                 <div className='space-y-2'>
@@ -226,15 +226,14 @@ function PurchasePage() {
                     disabled={redirecting}
                     onClick={() =>{
                         setRedirecting(true)
-                        router.push('/add-purchase')}}
+                        router.push('/add-sale')}}
                 >
-                    {redirecting ? <Loader2 height={60} width={60} className='animate-spin'/> : "Add Purchase"}
+                    {redirecting ? <Loader2 height={60} width={60} className='animate-spin'/> : "Add Sale"}
                 </Button>
-                
-                
+
                 {/* Results count */}
                 <div className="flex items-center text-sm text-gray-600">
-                    Showing {filteredAndSortedPurchases.length} of {purchase.length} purchases
+                    Showing {filteredAndSortedPurchases.length} of {sale.length} sales
                 </div>
                 </div>
             </div>
@@ -245,16 +244,16 @@ function PurchasePage() {
                     filters={filters}
                     onFiltersChange={handleFiltersChange}
                     onClearFilters={handleClearFilters}
-                    suppliers={suppliers}
+                    suppliers={customers}
                     loading={loading}
-                    label='Supplier'
+                    label="Customer"
                 />
             </div>
 
             {/* Data Table */}
             <div className="bg-white rounded-lg shadow-sm">
                 <DataTable 
-                    columns={PurchaseColumns(handlePurchaseDeleted)} 
+                    columns={SaleColumn(handleSaleDeleted)} 
                     data={filteredAndSortedPurchases}
                     loading={loading}
                 />

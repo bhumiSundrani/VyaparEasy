@@ -5,9 +5,9 @@ import { verifyToken } from "@/lib/jwtTokenManagement";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   await dbConnect();
-
+  const {type} = await req.json()
   try {
     // Get token from cookies
     const cookieStore = await cookies();
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     const search = url.searchParams.get("search")?.trim() || "";
 
     // Build query
-    const query: any = { user: user._id, type: "vendor" };
+    const query: any = { user: user._id, type: type};
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },   // case-insensitive match on name

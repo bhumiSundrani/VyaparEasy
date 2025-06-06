@@ -121,7 +121,7 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
             <NavSection
               title="Quick Actions"
               items={[
-                { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "" },
+                { label: 'Add Sales', icon: <ArrowUpCircle size={18} />, redirectUrl: "/add-sale" },
                 { label: 'Add Purchases', icon: <ArrowDownCircle size={18} />, redirectUrl: "/add-purchase" },
               ]}
               onItemClick={handleNavigation}
@@ -139,7 +139,7 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
             <NavSection
               title="Transactions"
               items={[
-                { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "" },
+                { label: 'Sales', icon: <TrendingUp size={18} />, redirectUrl: "/sales" },
                 { label: 'Purchases', icon: <TrendingDown size={18} />, redirectUrl: "/purchases" },
               ]}
               onItemClick={handleNavigation}
