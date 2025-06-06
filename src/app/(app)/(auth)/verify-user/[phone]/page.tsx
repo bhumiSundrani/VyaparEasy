@@ -67,8 +67,6 @@ export default function Page() {
         toast.success('OTP Verified Successfully!', {
           icon: '✅',
         })
-        // Add a small delay to ensure cookie is set
-        try {
           // Check if we have a valid user object
          if (response.data.user && Object.keys(response.data.user).length > 0) {
             console.log("User already exists with data:", response.data.user)
@@ -77,23 +75,8 @@ export default function Page() {
           } else {
             console.log("No existing user found, redirecting to signup")
             setPageLoading(true)
-            router.replace('/sign-up') // or wherever new users should go
+            router.replace(`/verify-user/sign-up/${phone}`) // or wherever new users should go
           }
-        } catch (error) {
-          const axiosError = error as AxiosError
-          console.log('Error details:', axiosError.response?.data) // Debug log
-          if (axiosError.response?.status === 401 || axiosError.response?.status === 404) {
-            console.log("Unauthorized - No token found")
-            setPageLoading(true)
-            router.replace(`/verify-user/sign-up/${phone}`)
-          } else {
-            toast.error("Something went wrong while fetching user data", {
-              icon: '❌',
-            })
-            setPageLoading(true)
-            router.replace(`/verify-user/sign-up/${phone}`)
-          }
-        }
       } else {
         toast.error(response.data.message || 'Failed to verify OTP', {
           icon: '❌',
