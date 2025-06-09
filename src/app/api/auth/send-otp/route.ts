@@ -49,11 +49,11 @@ export async function POST(req: NextRequest){
             success: true,
             message: "Otp sent successfully"
         }, {status: 200})
-    } catch (error) {
+    } catch (error: any) {
         console.log("Error sending otp: ", error)
             return NextResponse.json({
                 success: false,
-                message: "Error sending otp"
+                message: error.message || "Error sending otp"
             }, {status: 500})
     }
 }

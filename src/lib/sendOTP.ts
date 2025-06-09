@@ -16,6 +16,6 @@ export async function sendOTP({ phone, otp }: { phone: string; otp: string }) {
     return response.data;
   } catch (error: any) {
     console.error('❌ Error sending SMS:', error.response?.data || error.message);
-    throw new Error('SMS sending failed');
+    throw new Error('You tried too many times, try again later!');
   }
 }
