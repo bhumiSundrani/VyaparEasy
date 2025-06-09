@@ -1,6 +1,6 @@
 import dbConnect from "@/lib/dbConnect";
 import { generateOtp } from "@/lib/generateOtp";
-import { sendSMS } from "@/lib/sendSMS";
+import { sendOTP } from "@/lib/sendOTP";
 import OtpVerificationModel from "@/models/OtpVerification.model";
 import { phoneSchema } from "@/schemas/phoneSchema";
 import { NextRequest, NextResponse } from "next/server";
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest){
 //             message: `VyaparEasy OTP: ${otp}. Use this to verify your phone number. Do not share it with anyone.
 // `
 //         }
-        const response = await sendSMS({phone, otp})
+        const response = await sendOTP({phone, otp})
         if (response?.return !== true) {
             console.log("Error sending otp: ", response)
             return NextResponse.json({

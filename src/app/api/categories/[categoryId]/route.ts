@@ -4,6 +4,10 @@ import { objectIdSchema } from "@/schemas/categoryVerificationSchema";
 import { NextResponse } from "next/server";
 import { categoryVerificationSchema } from "@/schemas/categoryVerificationSchema";
 import { NextRequest } from "next/server";
+import { fetchImageForCategory } from "@/lib/fetchImages/fetchImageForCategory";
+import { verifyToken } from "@/lib/jwtTokenManagement";
+import { cookies } from "next/headers";
+import UserModel from "@/models/User.model";
 export async function DELETE(request: Request, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
@@ -99,6 +103,29 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{category
 export async function PUT(req: NextRequest, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get('token')?.value;
+        if (!token) {
+            return NextResponse.json({
+                success: false,
+                message: "Unauthorized access"
+            }, { status: 401 });
+        }
+        
+        const decodedToken = await verifyToken(token);
+        if (!decodedToken) {
+            return NextResponse.json({
+                success: false,
+                message: "Invalid token"
+            }, { status: 401 });
+        }
+        const user = await UserModel.findOne({ phone: decodedToken.phone });
+        if (!user) {
+            return NextResponse.json({
+                success: false,
+                message: "User not found"
+            }, { status: 401 });
+        }
         const { categoryId } = await params;
         const body = await req.json();
         const parsedBody = categoryVerificationSchema.safeParse(body);
@@ -117,17 +144,31 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{category
 
         const {name, parentCategory} = parsedBody.data;
 
-        const updatedCategory = await CategoryModel.findByIdAndUpdate(categoryId, 
-            { name, parentCategory },
-            { new: true, runValidators: true }
-        );
+        const existingCategory = await CategoryModel.findById(categoryId)
 
-        if (!updatedCategory) {
+        if(!existingCategory){
             return NextResponse.json({
                 success: false,
                 message: "Category not found"
             }, { status: 404 });
         }
+
+        if(name !== existingCategory.name){
+            const duplicateCategory = await CategoryModel.findOne({name: existingCategory.name, _id: { $ne: categoryId }, user: user._id})
+            if(duplicateCategory){
+                return NextResponse.json({
+                    success: true,
+                    message: "Category already exists"
+                }, {status: 400})
+            }
+        }
+
+        const imageUrl = name !== existingCategory.name ? await fetchImageForCategory(name) : existingCategory.imageUrl
+
+        const updatedCategory = await CategoryModel.findByIdAndUpdate(categoryId, 
+            { name, parentCategory, imageUrl },
+            { new: true, runValidators: true }
+        );
 
         return NextResponse.json({
             success: true,

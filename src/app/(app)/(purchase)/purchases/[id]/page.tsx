@@ -140,12 +140,14 @@ export default function PurchaseViewPage() {
   const otherExpensesTotal = purchase.otherExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
   const totalQuantity = purchase.items.reduce((sum, item) => sum + item.quantity, 0);
   const isPaid = purchase.paymentType === 'cash';
+  const tenDaysLater = new Date(purchase.transactionDate);
+  tenDaysLater.setDate(tenDaysLater.getDate() + 10);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto sm:w-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto sm:w-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Button
@@ -157,9 +159,9 @@ export default function PurchaseViewPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <div className='hidden sm:block'>
+              <div>
                 <h1 className="sm:text-xl text-base font-semibold text-gray-900">Purchase Details</h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 hidden sm:block">
                   Transaction ID: {purchase._id.slice(-8).toUpperCase()}
                 </p>
               </div>
@@ -374,20 +376,6 @@ export default function PurchaseViewPage() {
                     </p>
                   </div>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Created</label>
-                  <p className="text-gray-900 mt-1">
-                    {new Date(purchase.createdAt).toLocaleDateString('en-IN', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-
                 {purchase.updatedAt !== purchase.createdAt && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Last Updated</label>
@@ -402,6 +390,17 @@ export default function PurchaseViewPage() {
                     </p>
                   </div>
                 )}
+
+                {purchase.paymentType === 'credit' &&                 
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Due Date</label>
+                  <p className="text-gray-900 mt-1 font-mono text-sm">
+                    {tenDaysLater.toLocaleDateString()}
+                  </p>
+                </div>
+                }
+
+                
 
                 <div>
                   <label className="text-sm font-medium text-gray-600">Transaction ID</label>

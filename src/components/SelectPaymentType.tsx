@@ -10,7 +10,7 @@ export const SelectPaymentType = ({ value, onChange }: { value: string, onChange
 
   const fetchLabel = (value: string) => {
     if(value === 'cash') return "Cash"
-    else "Credit"
+    else return "Credit"
   }
 
   return (

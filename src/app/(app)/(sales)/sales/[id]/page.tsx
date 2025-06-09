@@ -135,12 +135,14 @@ export default function SaleViewPage() {
   const baseAmount = sale.items.reduce((sum, item) => sum + (item.quantity * item.pricePerUnit), 0);
   const totalQuantity = baseAmount
   const isPaid = sale.paymentType === 'cash';
+  const tenDaysLater = new Date(sale.transactionDate);
+  tenDaysLater.setDate(tenDaysLater.getDate() + 10);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto sm:w-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto sm:w-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Button
@@ -152,9 +154,9 @@ export default function SaleViewPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <div className='hidden sm:block'>
+              <div>
                 <h1 className="sm:text-xl text-base font-semibold text-gray-900">Sale Details</h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 hidden sm:block">
                   Transaction ID: {sale._id.slice(-8).toUpperCase()}
                 </p>
               </div>
@@ -328,19 +330,15 @@ export default function SaleViewPage() {
                     </p>
                   </div>
                 </div>
-
+                {sale.paymentType === 'credit' && 
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Created</label>
-                  <p className="text-gray-900 mt-1">
-                    {new Date(sale.createdAt).toLocaleDateString('en-IN', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                  <label className="text-sm font-medium text-gray-600">Due Date</label>
+                  <p className="text-gray-900 mt-1 font-mono text-sm">
+                    {tenDaysLater.toLocaleDateString()}
                   </p>
                 </div>
+                }
+                
 
                 {sale.updatedAt !== sale.createdAt && (
                   <div>

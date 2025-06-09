@@ -83,40 +83,11 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
     })
   }
 
-  const updateDateRange = (type: 'from' | 'to', value: string) => {
-    onFiltersChange({
-      ...filters,
-      dateRange: {
-        ...filters.dateRange,
-        [type]: value
-      }
-    })
-  }
 
-  const updatePriceRange = (type: 'min' | 'max', value: string) => {
-    onFiltersChange({
-      ...filters,
-      priceRange: {
-        ...filters.priceRange,
-        [type]: value
-      }
-    })
-  }
-
-  const statusOptions = [
-    { value: '', label: 'All Status' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'draft', label: 'Draft' }
-  ]
 
   const paymentMethodOptions = [
-    { value: '', label: 'All Payment Methods' },
+    { value: "all", label: 'All' },
     { value: 'cash', label: 'Cash' },
-    { value: 'card', label: 'Card' },
-    { value: 'bank_transfer', label: 'Bank Transfer' },
-    { value: 'cheque', label: 'Cheque' },
     { value: 'credit', label: 'Credit' }
   ]
 
@@ -142,9 +113,25 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
             disabled={loading}
           />
         </div>
-
-        {/* Filter Toggle Button */}
         <div className="flex items-center gap-2">
+
+          <div className='flex items-center gap-2'>
+            <Select value={filters.paymentMethod} onValueChange={(value) => {
+              if( value === 'all' ) value=""
+              updateFilter('paymentMethod', value)}
+            }>
+              <SelectTrigger className='w-32 text-sm'>
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethodOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                )) }
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Sort Controls */}
           <div className="flex items-center gap-2">
@@ -185,190 +172,6 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
           )}
         </div>
       </div>
-
-      {/* Advanced Filters Panel */}
-      {isFiltersOpen && (
-        <div className="border-t pt-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            
-            {/* Date Range Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                Date Range
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  type="date"
-                  value={filters.dateRange.from}
-                  onChange={(e) => updateDateRange('from', e.target.value)}
-                  className="text-sm"
-                  placeholder="From"
-                />
-                <Input
-                  type="date"
-                  value={filters.dateRange.to}
-                  onChange={(e) => updateDateRange('to', e.target.value)}
-                  className="text-sm"
-                  placeholder="To"
-                />
-              </div>
-            </div>
-
-            {/* Price Range Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
-                Amount Range
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={filters.priceRange.min}
-                  onChange={(e) => updatePriceRange('min', e.target.value)}
-                  placeholder="Min ₹"
-                  className="text-sm"
-                />
-                <Input
-                  type="number"
-                  value={filters.priceRange.max}
-                  onChange={(e) => updatePriceRange('max', e.target.value)}
-                  placeholder="Max ₹"
-                  className="text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Status Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                <Package className="h-4 w-4" />
-                Status
-              </label>
-              <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Supplier Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                <User className="h-4 w-4" />
-                Supplier
-              </label>
-              <Select value={filters.supplier} onValueChange={(value) => updateFilter('supplier', value)}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Suppliers</SelectItem>
-                  {suppliers.map(supplier => (
-                    <SelectItem key={supplier} value={supplier}>
-                      {supplier}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Payment Method Filter */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
-                Payment Method
-              </label>
-              <Select value={filters.paymentMethod} onValueChange={(value) => updateFilter('paymentMethod', value)}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Select method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethodOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Active Filters Display */}
-          {activeFiltersCount > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2 border-t">
-              <span className="text-sm text-gray-600 font-medium">Active filters:</span>
-              
-              {filters.searchTerm && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Search: {filters.searchTerm}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('searchTerm', '')}
-                  />
-                </Badge>
-              )}
-              
-              {(filters.dateRange.from || filters.dateRange.to) && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Date: {filters.dateRange.from || 'Start'} - {filters.dateRange.to || 'End'}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('dateRange', { from: '', to: '' })}
-                  />
-                </Badge>
-              )}
-              
-              {(filters.priceRange.min || filters.priceRange.max) && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Amount: ₹{filters.priceRange.min || '0'} - ₹{filters.priceRange.max || '∞'}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('priceRange', { min: '', max: '' })}
-                  />
-                </Badge>
-              )}
-              
-              {filters.status && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Status: {statusOptions.find(s => s.value === filters.status)?.label}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('status', '')}
-                  />
-                </Badge>
-              )}
-              
-              {filters.supplier && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Supplier: {filters.supplier}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('supplier', '')}
-                  />
-                </Badge>
-              )}
-              
-              {filters.paymentMethod && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Payment: {paymentMethodOptions.find(p => p.value === filters.paymentMethod)?.label}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilter('paymentMethod', '')}
-                  />
-                </Badge>
-              )}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
