@@ -166,7 +166,7 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{category
         const imageUrl = name !== existingCategory.name ? await fetchImageForCategory(name) : existingCategory.imageUrl
 
         const updatedCategory = await CategoryModel.findByIdAndUpdate(categoryId, 
-            { name, parentCategory, imageUrl },
+            { $set: {name, parentCategory, imageUrl} },
             { new: true, runValidators: true }
         );
 
