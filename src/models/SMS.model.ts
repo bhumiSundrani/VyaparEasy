@@ -15,10 +15,6 @@ const SMSSchema: Schema<SMS> = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Party"
     },
-    userId: {
-        type: Schema.Types.ObjectId,
-        ref: "User"
-    },
     message: {
         type: String,
         required: true

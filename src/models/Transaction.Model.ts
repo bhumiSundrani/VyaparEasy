@@ -111,6 +111,10 @@ TransactionSchema.pre("validate", function (next) {
 
 TransactionSchema.index({ userId: 1 });
 TransactionSchema.index({ transactionDate: -1 });
+TransactionSchema.index({ userId: 1, type: 1, transactionDate: -1 });
+TransactionSchema.index({ userId: 1, paymentType: 1 });
+TransactionSchema.index({ userId: 1, type: 1, paymentType: 1 });
+TransactionSchema.index({ "items.productId": 1 });
 
 
 const TransactionModel = 

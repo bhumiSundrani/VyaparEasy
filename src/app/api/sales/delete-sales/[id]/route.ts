@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
+import PartyModel from "@/models/Party.model";
 import ProductModel from "@/models/Product.model";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
@@ -51,7 +52,26 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             }
         }
 
-        await TransactionModel.findByIdAndDelete(id)
+        const party = await PartyModel.findOne({phone: sales.customer?.phone, user: user})
+
+        if(!party){
+            return NextResponse.json({
+                success: false,
+                message: "Party doesn't exist"
+            }, {status: 404})
+        }
+
+        party.transactionId = party.transactionId.filter(
+            t => t.toString() !== sales._id?.toString()
+        );
+
+        if(sales.paymentType === 'credit'){
+            party.amount -= sales.totalAmount
+        }
+
+        await party.save()
+
+        await TransactionModel.deleteOne({_id: sales._id})
 
         return NextResponse.json({
             success: true,
