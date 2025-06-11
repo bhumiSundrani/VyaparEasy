@@ -48,9 +48,7 @@ function PurchasePage() {
         sortOrder: 'desc'
     })
 
-    // Fetch purchases
-    useEffect(() => {
-        const fetchPurchase = async () => {
+    const fetchPurchase = async () => {
             setLoading(true)
             try {
                 const res = await axios.get('/api/purchases')
@@ -72,6 +70,8 @@ function PurchasePage() {
                 setLoading(false)
             }
         }
+    // Fetch purchases
+    useEffect(() => {        
         fetchPurchase()
     }, [])
 
@@ -180,28 +180,6 @@ function PurchasePage() {
 
     // Handle purchase deletion
     const handlePurchaseDeleted = () => {
-        const fetchPurchase = async () => {
-            setLoading(true)
-            try {
-                const res = await axios.get('/api/purchases')
-                const purchaseResponse = res.data.purchases as PurchaseColumnData[]
-                setPurchase(purchaseResponse)
-                
-                // Update suppliers list
-                const uniqueSuppliers = [...new Set(
-                    purchaseResponse
-                        .map(p => p.supplier?.name)
-                        .filter(Boolean)
-                )] as string[]
-                setSuppliers(uniqueSuppliers)
-                
-            } catch (error) {
-                const axiosError = error as AxiosError<ApiResponse>
-                console.error("Error fetching purchase: ", axiosError.response?.data.message)
-            } finally {
-                setLoading(false)
-            }
-        }
         fetchPurchase()
     }
 

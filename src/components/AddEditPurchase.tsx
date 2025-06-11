@@ -111,9 +111,7 @@ const PurchaseForm = ({purchase}: {purchase: PurchaseFormData | null}) => {
   });
 
   const items = watch("items");
-  const otherExpenses = useMemo(() => {
-    return watch("otherExpenses") || [];
-  }, [watch]);
+  const otherExpenses = watch("otherExpenses")
 
   const calculateItemsTotal = useCallback(() => {
     return items.reduce((acc, item) => acc + (item.quantity * item.pricePerUnit || 0), 0);

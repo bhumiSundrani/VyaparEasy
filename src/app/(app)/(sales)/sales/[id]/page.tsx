@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import axios from 'axios';
+import { DeleteButton } from '@/components/DeleteButton';
 // Note: Replace with your HTTP client (axios, fetch, etc.)
 
 interface SaleTransaction {
@@ -86,20 +88,20 @@ export default function SaleViewPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this sale? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       setActionLoading(true);
       // Replace with your HTTP client implementation
       // await axios.delete(`/api/purchases/${purchaseId}`);
-      await fetch(`/api/sales/${sale}`, { method: 'DELETE' });
-      toast.success('Sale deleted successfully');
+      await axios.delete(`/api/sales/delete-sales/${saleId}`);
+      toast.success('Sale deleted successfully', {
+        icon: '✅',
+      });
       router.push('/sales');
     } catch (error) {
       console.error('Error deleting sale:', error);
-      toast.error('Failed to delete sale');
+      toast.error('Failed to delete sale', {
+        icon: '❌',
+      });
     } finally {
       setActionLoading(false);
     }
@@ -172,16 +174,10 @@ export default function SaleViewPage() {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDelete}
-                disabled={actionLoading}
-                className="text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
+              <DeleteButton
+              onDelete={handleDelete}
+              type='sale'
+              />
             </div>
           </div>
         </div>

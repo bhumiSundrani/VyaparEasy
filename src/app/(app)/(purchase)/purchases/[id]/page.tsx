@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { DeleteButton } from '@/components/DeleteButton';
+import axios from 'axios';
 // Note: Replace with your HTTP client (axios, fetch, etc.)
 
 interface PurchaseTransaction {
@@ -90,20 +92,20 @@ export default function PurchaseViewPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this purchase? This action cannot be undone.')) {
-      return;
-    }
-
     try {
       setActionLoading(true);
       // Replace with your HTTP client implementation
       // await axios.delete(`/api/purchases/${purchaseId}`);
-      await fetch(`/api/purchases/${purchaseId}`, { method: 'DELETE' });
-      toast.success('Purchase deleted successfully');
+      await axios.delete(`/api/purchases/delete-purchase/${purchaseId}`);
+      toast.success('Purchase deleted successfully', {
+        icon: '✅'
+      });
       router.push('/purchases');
     } catch (error) {
       console.error('Error deleting purchase:', error);
-      toast.error('Failed to delete purchase');
+      toast.error('Failed to delete purchase', {
+        icon: '❌',
+      });
     } finally {
       setActionLoading(false);
     }
@@ -177,16 +179,10 @@ export default function PurchaseViewPage() {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDelete}
-                disabled={actionLoading}
-                className="text-red-600 border-red-200 hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
+              <DeleteButton
+                onDelete={handleDelete}
+                type='purchase'
+              />
             </div>
           </div>
         </div>
