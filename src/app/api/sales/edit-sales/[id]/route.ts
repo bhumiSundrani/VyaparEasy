@@ -118,8 +118,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         }
 
         // Store original values before updating
-        const originalPaymentType = transaction.paymentType;
-        const originalAmount = transaction.totalAmount;
         const originalCustomerPhone = transaction.customer?.phone;
 
         // Convert items to proper format
@@ -149,6 +147,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         transaction.customer = formattedCustomer; // Changed from 'supplier'
         transaction.items = convertedItems;
         transaction.totalAmount = totalAmount;
+        transaction.dueDate = dueDate;
         if (transactionDate !== undefined) {
             transaction.transactionDate = transactionDate;
         }
@@ -179,37 +178,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 transactionId: [transaction._id],
                 phone: formattedCustomer.phone,
                 type: "customer", // Changed from "vendor"
-                amount: paymentType === "credit" ? totalAmount : 0,
-                dueDate: dueDate,
-                paid: paymentType === "cash",
-                remindersSent: 0,
-                lastReminderDate: null,
                 user: user._id,
             });
         } else {
             // Update existing customer party
             if (!party.transactionId.includes(transaction._id as Types.ObjectId)) {
                 party.transactionId.push(transaction._id as Types.ObjectId);
-            }
-
-            // Calculate amount changes based on original vs new payment types
-            if (originalPaymentType === "credit" && paymentType === "credit") {
-                // Both credit: adjust amount difference
-                party.amount = party.amount - originalAmount + totalAmount;
-                party.paid = false;
-                party.dueDate = dueDate;
-            } else if (originalPaymentType === "credit" && paymentType === "cash") {
-                // Credit to cash: subtract original amount
-                party.amount -= originalAmount;
-                party.paid = party.amount <= 0;
-            } else if (originalPaymentType === "cash" && paymentType === "credit") {
-                // Cash to credit: add new amount
-                party.amount += totalAmount;
-                party.paid = false;
-                party.dueDate = dueDate;
-            } else {
-                // Both cash: no amount change needed
-                party.paid = true;
             }
 
             await party.save();
@@ -228,12 +202,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 oldParty.transactionId = oldParty.transactionId.filter(
                     id => !id.equals(transaction._id as Types.ObjectId)
                 );
-
-                // Adjust amount if it was credit
-                if (originalPaymentType === "credit") {
-                    oldParty.amount -= originalAmount;
-                    oldParty.paid = oldParty.amount <= 0;
-                }
 
                 // Delete party if no transactions left
                 if (oldParty.transactionId.length === 0) {

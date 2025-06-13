@@ -49,8 +49,9 @@ export async function GET(){
       if(sales.length === 0){
         return NextResponse.json({
             success: false,
-            message: "No sale found"
-        }, {status: 404})
+            message: "No sale found",
+            sales
+        }, {status: 200})
       }
 
       // Conditionally populate productName for items where it's missing

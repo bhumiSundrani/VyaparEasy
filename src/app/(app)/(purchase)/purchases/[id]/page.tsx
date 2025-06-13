@@ -44,6 +44,7 @@ interface PurchaseTransaction {
     amount: number;
   }[];
   transactionDate: Date;
+  dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -142,8 +143,6 @@ export default function PurchaseViewPage() {
   const otherExpensesTotal = purchase.otherExpenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
   const totalQuantity = purchase.items.reduce((sum, item) => sum + item.quantity, 0);
   const isPaid = purchase.paymentType === 'cash';
-  const tenDaysLater = new Date(purchase.transactionDate);
-  tenDaysLater.setDate(tenDaysLater.getDate() + 10);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -390,9 +389,16 @@ export default function PurchaseViewPage() {
                 {purchase.paymentType === 'credit' &&                 
                 <div>
                   <label className="text-sm font-medium text-gray-600">Due Date</label>
-                  <p className="text-gray-900 mt-1 font-mono text-sm">
-                    {tenDaysLater.toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <p className="text-gray-900">
+                      {new Date(purchase.dueDate).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
                 </div>
                 }
 

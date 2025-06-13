@@ -1,6 +1,7 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface Transaction extends Document{
+    _id: Types.ObjectId;
     userId: Types.ObjectId;
     type: "purchase" | "sale";
     paymentType: "cash" | "credit";
@@ -23,7 +24,8 @@ export interface Transaction extends Document{
         name: string;
         amount: number
     }[],
-    transactionDate: Date
+    transactionDate: Date,
+    dueDate?: Date
 }
 
 const TransactionSchema: Schema<Transaction> = new Schema({
@@ -94,6 +96,9 @@ const TransactionSchema: Schema<Transaction> = new Schema({
     transactionDate: {
         type: Date,
         default: Date.now
+    },
+    dueDate: {
+        type: Date
     }
 }, {
     timestamps: true

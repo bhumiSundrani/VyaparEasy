@@ -7,9 +7,7 @@ import {
   User, 
   Phone, 
   CreditCard, 
-  Receipt, 
   Edit,
-  Trash2,
   Download,
   Clock,
   IndianRupee,
@@ -23,7 +21,6 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { DeleteButton } from '@/components/DeleteButton';
-// Note: Replace with your HTTP client (axios, fetch, etc.)
 
 interface SaleTransaction {
   _id: string;
@@ -40,6 +37,7 @@ interface SaleTransaction {
   }[];
   totalAmount: number;
   transactionDate: Date;
+  dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,14 +58,8 @@ export default function SaleViewPage() {
         setLoading(true);
         // Replace with your HTTP client implementation
         // const response = await axios.get(`/api/purchases/${purchaseId}`);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/sales/${saleId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          cache: 'no-store', // Disable caching for dynamic data
-        });
-        const data = await response.json();
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/sales/${saleId}`);
+        const data = response.data;
         setSale(data.sale);
       } catch (error) {
         console.error('Error fetching sale:', error);
@@ -86,6 +78,8 @@ export default function SaleViewPage() {
   const handleEdit = () => {
     router.push(`/sales/edit-sale/${saleId}`);
   };
+
+  console.log("Due date: ", sale?.dueDate)
 
   const handleDelete = async () => {
     try {
@@ -137,8 +131,6 @@ export default function SaleViewPage() {
   const baseAmount = sale.items.reduce((sum, item) => sum + (item.quantity * item.pricePerUnit), 0);
   const totalQuantity = baseAmount
   const isPaid = sale.paymentType === 'cash';
-  const tenDaysLater = new Date(sale.transactionDate);
-  tenDaysLater.setDate(tenDaysLater.getDate() + 10);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -329,9 +321,16 @@ export default function SaleViewPage() {
                 {sale.paymentType === 'credit' && 
                 <div>
                   <label className="text-sm font-medium text-gray-600">Due Date</label>
-                  <p className="text-gray-900 mt-1 font-mono text-sm">
-                    {tenDaysLater.toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <p className="text-gray-900">
+                      {new Date(sale.dueDate).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
                 </div>
                 }
                 

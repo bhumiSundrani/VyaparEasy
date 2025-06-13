@@ -62,12 +62,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         }
 
         party.transactionId = party.transactionId.filter(
-            t => t.toString() !== sales._id?.toString()
+            t => t.toString() !== sales._id.toString()
         );
-
-        if(sales.paymentType === 'credit'){
-            party.amount -= sales.totalAmount
-        }
 
         await party.save()
 

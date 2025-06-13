@@ -94,6 +94,15 @@ export async function POST(req: NextRequest) {
           phone: `+91${customer.phone}`
       };
 
+      
+      let dueDate: Date | undefined = undefined;
+      if (paymentType === 'credit') {
+          const transDate = transactionDate || new Date();
+          dueDate = new Date(transDate);
+          dueDate.setDate(dueDate.getDate() + 10);
+      }
+
+
       const transaction = await TransactionModel.create({
           userId: user._id,
           type: 'sale',
@@ -101,15 +110,9 @@ export async function POST(req: NextRequest) {
           customer: formattedCustomer,
           items: convertedItems,
           totalAmount,
-          transactionDate: transactionDate || new Date()
+          transactionDate: transactionDate || new Date(),
+          dueDate: dueDate
       });
-
-      let dueDate: Date | undefined = undefined;
-      if (paymentType === 'credit') {
-          const transDate = transactionDate || new Date();
-          dueDate = new Date(transDate);
-          dueDate.setDate(dueDate.getDate() + 10);
-      }
 
       let productCustomer = await PartyModel.findOne({ 
           phone: formattedCustomer.phone, 
@@ -123,20 +126,10 @@ export async function POST(req: NextRequest) {
               transactionId: [transaction._id],
               phone: formattedCustomer.phone,
               type: 'customer',
-              amount: paymentType === 'credit' ? totalAmount : 0,
-              dueDate: dueDate,
-              paid: paymentType === 'cash',
-              remindersSent: 0,
-              lastReminderDate: null,
               user: user._id
           });
       } else {
           productCustomer.transactionId.push(transaction._id as Types.ObjectId);
-          if (paymentType === 'credit') {
-              productCustomer.amount += totalAmount;
-              productCustomer.paid = false;
-              productCustomer.dueDate = dueDate;
-          }
           await productCustomer.save();
       }
 

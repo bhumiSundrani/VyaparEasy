@@ -1,15 +1,11 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface Party extends Document{
+    _id: Types.ObjectId;
     name: string;
     transactionId: Types.ObjectId[];
     phone: string;
     type: "customer" | "vendor";
-    amount: number;
-    dueDate?: Date;
-    paid: boolean;
-    remindersSent: number;
-    lastReminderDate?: Date | null;
     user: Types.ObjectId
 }
 
@@ -35,25 +31,6 @@ const PartySchema : Schema<Party> = new Schema({
         enum: ["customer", "vendor"],
         required: true
     },
-    amount: {
-        type: Number,
-        required: true
-    },
-    dueDate: {
-        type: Date
-    },
-    paid: {
-        type: Boolean,
-        default: false
-    },
-    remindersSent: {
-        type: Number,
-        default: 0
-    },
-    lastReminderDate: {
-        type: Date,
-        default: null
-    },
     user: {
         type: Schema.Types.ObjectId,
         ref: "User",
@@ -61,6 +38,9 @@ const PartySchema : Schema<Party> = new Schema({
     }
 }, {timestamps: true})
 
+PartySchema.index({ phone: 1 });
+PartySchema.index({ user: 1 });
+PartySchema.index({ paid: 1, dueDate: 1 });
 
 const PartyModel = 
     (mongoose.models.Party as mongoose.Model<Party>) ||

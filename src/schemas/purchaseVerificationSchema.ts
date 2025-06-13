@@ -21,4 +21,8 @@ export const purchaseVerificationSchema = z.object({
         arg => typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg, 
         z.date()
     ).optional(),
+    dueDate: z.preprocess(
+            arg => typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg, 
+            z.date()
+        ).optional(),
 });

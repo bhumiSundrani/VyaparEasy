@@ -1,6 +1,7 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface Category extends Document{
+    _id: Types.ObjectId;
     name: string;
     parentCategory?: Types.ObjectId | null;
     imageUrl: string | null;

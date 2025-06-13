@@ -1,13 +1,14 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface SMS extends Document{
+    _id: Types.ObjectId;
     partyId?: Types.ObjectId;
-    userId?: Types.ObjectId;
     message: string;
-    type: "stock_alert" | "creditor_payment" | "otp" | "repayment_reminder";
+    type: "stock_alert" | "creditor_payment" | "repayment_reminder";
     deliveryStatus: "pending" | "failed" | "sent";
     sentAt?: Date | null,
-    user: Types.ObjectId
+    user: Types.ObjectId,
+
 }
 
 const SMSSchema: Schema<SMS> = new Schema({
@@ -21,7 +22,7 @@ const SMSSchema: Schema<SMS> = new Schema({
     },
     type:{
         type: String,
-        enum: ["stock_alert", "creditor_payment", "otp", "repayment_reminder"],
+        enum: ["stock_alert", "creditor_payment", "repayment_reminder"],
         required: true
     },
     deliveryStatus: {

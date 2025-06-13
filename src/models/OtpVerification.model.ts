@@ -1,6 +1,7 @@
-import mongoose, {Schema, Document} from 'mongoose'
+import mongoose, {Schema, Document, Types} from 'mongoose'
 
 export interface OtpVerification extends Document {
+    _id: Types.ObjectId;
     phone: string;
     otp: string;
     expiresAt: Date;

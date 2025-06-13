@@ -67,7 +67,7 @@ function PurchasePage() {
                 
             } catch (error) {
                 const axiosError = error as AxiosError<ApiResponse>
-                console.error("Error fetching purchase: ", axiosError.response?.data.message)
+                console.error("Error fetching sale: ", axiosError.response?.data.message)
             } finally {
                 setLoading(false)
             }

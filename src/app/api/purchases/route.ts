@@ -68,20 +68,10 @@ export async function GET(){
         }
       }
 
-      // Debug logs (optional, you can keep or remove these)
-      console.log("First purchase data after processing:", JSON.stringify(purchases[0], null, 2));
-      console.log("First purchase items after processing:", JSON.stringify(purchases[0].items, null, 2));
-
       return NextResponse.json({
         success: true,
         message: "Purchases found successfully",
-        purchases,
-        // Add debug info (optional)
-        debug: {
-          totalPurchases: purchases.length,
-          firstPurchaseItemsCount: purchases[0]?.items?.length || 0,
-          firstItemHasProductName: !!purchases[0]?.items?.[0]?.productName
-        }
+        purchases
       }, {status: 200})
     } catch (error) {
         console.error("Error finding purchases:", error);

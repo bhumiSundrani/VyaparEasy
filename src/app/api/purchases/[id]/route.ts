@@ -86,7 +86,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         })),
         totalAmount: purchase.totalAmount,
         otherExpenses: purchase.otherExpenses || [],
-        transactionDate: purchase.transactionDate
+        transactionDate: purchase.transactionDate,
+        dueDate: purchase.dueDate
       };
 
       return NextResponse.json({
