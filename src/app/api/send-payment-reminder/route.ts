@@ -63,13 +63,23 @@ export async function GET () {
             const phone = txn.customer?.phone;
             if(phone) {
                 const res = await sendSMS(phone, message)
-                if(res) await NotificationModel.create({
+                if(res) {await NotificationModel.create({
                     user: user,
                     title: "Payment alert sent to customer",
                     message: `Repayment reminder of ₹${txn.totalAmount} is sent to ${txn.customer?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}.`,
                     type: "reminder",
                     isRead: false
                 })
+                return NextResponse.json({
+                    success: true,
+                    message: "Reminder sent to customer"
+                }, {status: 200})
+            }
+            }else{
+                return NextResponse.json({
+                    success: false,
+                    message: "Failed to send reminder"
+                }, {status: 500})
             }
         }
     }
