@@ -85,8 +85,8 @@ const AddEditCategoryPage = ({category}: {category: CategoryFormData | null}) =>
         toast.success(res.data.message || `Category ${isEditing ? 'updated' : 'added'} successfully`, {
           icon: '✅',
         });
-        setLoading(true)
         router.push('/all-categories');
+        setLoading(true)
       } else {
         // Handle server-side validation errors
         if (res.data.errors) {

@@ -1,4 +1,5 @@
 import mongoose, {Schema, Document, Types} from 'mongoose'
+import { boolean } from 'zod';
 
 export interface Transaction extends Document{
     _id: Types.ObjectId;
@@ -25,7 +26,8 @@ export interface Transaction extends Document{
         amount: number
     }[],
     transactionDate: Date,
-    dueDate?: Date
+    dueDate?: Date,
+    paid: boolean;
 }
 
 const TransactionSchema: Schema<Transaction> = new Schema({
@@ -99,6 +101,10 @@ const TransactionSchema: Schema<Transaction> = new Schema({
     },
     dueDate: {
         type: Date
+    }, 
+    paid: {
+        type: Boolean,
+        required: true
     }
 }, {
     timestamps: true

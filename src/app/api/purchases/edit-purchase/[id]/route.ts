@@ -137,6 +137,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       transaction.totalAmount = totalAmount;
       transaction.otherExpenses = otherExpenses;
       transaction.dueDate = dueDate;
+      transaction.paid = paymentType === 'credit' ? false : true
       if (transactionDate !== undefined) {
           transaction.transactionDate = transactionDate;
       }

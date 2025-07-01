@@ -62,18 +62,14 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
   }, []);
 
   const handleNavigation = (url: string) => {
-    if (!url) return; // Skip if no URL provided
-    
-    // Show loader only on desktop
-    if (!isMobile) {
-      setPageLoading(true);
-    }
-    
-    // Close mobile menu
+    if (!url) return;
     setIsOpen(false);
     
     // Handle navigation
     router.replace(url);
+    if (!isMobile) {
+      setPageLoading(true);
+    }
   };
 
   return (

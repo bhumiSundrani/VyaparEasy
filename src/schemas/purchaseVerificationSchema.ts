@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { boolean, z } from "zod";
 
 export const purchaseVerificationSchema = z.object({
     paymentType: z.enum(["cash", "credit"]),
@@ -25,4 +25,5 @@ export const purchaseVerificationSchema = z.object({
             arg => typeof arg === 'string' || arg instanceof Date ? new Date(arg) : arg, 
             z.date()
         ).optional(),
+    paid: z.boolean().optional()
 });

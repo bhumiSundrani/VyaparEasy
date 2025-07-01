@@ -61,9 +61,9 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
         if (res.data.success) {
           toast.success(product ? "Product updated successfully" : "Product saved successfully", {
             icon: '✅',
-          });
-          setPageLoading(true)
+          });          
             router.push('/all-products');
+            setPageLoading(true)
           }       
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;

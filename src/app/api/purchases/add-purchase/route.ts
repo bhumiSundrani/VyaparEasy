@@ -105,7 +105,8 @@ export async function POST(req: NextRequest) {
           totalAmount,
           otherExpenses,
           transactionDate: transactionDate || new Date(),
-          dueDate: dueDate
+          dueDate: dueDate,
+          paid: paymentType === 'credit' ? false : true
       });
 
       let productSupplier = await PartyModel.findOne({ 

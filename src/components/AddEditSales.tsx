@@ -189,8 +189,9 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         toast.success(sale ? "Sale updated successfully!" : "Sale created successfully!", {
           icon: "✅",
         });
-         setPageLoading(true)
+         
         router.push("/sales");
+        setPageLoading(true)
       }
     } catch (error) {
       console.error("Submit error:", error);
