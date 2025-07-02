@@ -2,14 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/src/app/api/send-payment-reminder",
+      "path": "/src/app/api/cron-jobs",
       "schedule": "0 5 * * *"
-    }, {
-        "path": "/src/app/api/create-payment-notification",
-        "schedule": "0 5 * * *"
-    }, {
-        "path": "/src/app/api/check-products-threshold",
-        "schedule": "0 5 * * *"
     }, {
       "path": "/src/app/api/daily-report",
       "schedule": "0 22 * * *"

@@ -2,22 +2,22 @@ import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import { sendSMS } from "@/lib/sendSMS";
 import NotificationModel from "@/models/Notification.model";
+import ProductModel from "@/models/Product.model";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET () {
+export async function GET(){
     await dbConnect()
-// Get user from token
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-        if (!token) {
-            return NextResponse.json({
-                success: false,
-                message: "Unauthorized access"
-            }, { status: 401 });
-        }
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) {
+        return NextResponse.json({
+            success: false,
+            message: "Unauthorized access"
+        }, { status: 401 });
+    }
 
         const decodedToken = await verifyToken(token);
         if (!decodedToken) {
@@ -34,10 +34,52 @@ export async function GET () {
                 message: "User not found"
             }, { status: 401 });
         }
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
 
-    const transactions = await TransactionModel.find({
+        const products = await ProductModel.find({
+            user: user._id,
+            $expr: { $lte: ["$currentStock", "$lowStockThreshold"] }
+        })
+
+        if(products){
+            for(const p of products){
+                await NotificationModel.create({
+                    user: user._id,
+                    title: `${p.name} is low in stock`,
+                    message: `Only ${p.currentStock} ${p.unit} left of ${p.name}`,
+                    type: "stock_alert",
+                    isRead: false
+                })
+            }
+        }
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const purchases = await TransactionModel.find({
+        userId: user._id,
+        type: 'purchase',
+        paymentType: 'credit',
+        paid: false,
+        dueDate: {
+            $gte: new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000),
+            $lte: new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
+        }
+        })
+
+        if(purchases){
+            for(const txn of purchases){
+                await NotificationModel.create({
+                        user: user._id,
+                        title: "Payment due to vendor",
+                        message: `Payment of ₹${txn.totalAmount} is due to ${txn.supplier?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}.`,
+                        type: "reminder",
+                        isRead: false
+                })
+                return NextResponse.json({
+                    success: true,
+                    message: "Payment alert sent successfully"
+                }, {status: 200})
+            }
+        }
+        const sales = await TransactionModel.find({
         userId: user._id,
         type: 'sale',
         paymentType: 'credit',
@@ -48,12 +90,8 @@ export async function GET () {
         }
     })
 
-    if(!transactions){
-        return
-    }
-
-    try {
-        for(const txn of transactions){
+    if(sales){
+        for(const txn of sales){
             if (txn?.dueDate) {
             const due = new Date(txn.dueDate);
             due.setHours(0, 0, 0, 0);
@@ -81,11 +119,9 @@ export async function GET () {
             }
         }
         }
-    } catch (error) {
-        console.log("Error sending reminder to customer: ", error)
-         return NextResponse.json({
-                        success: false,
-                        message: "Failed to send reminder"
-                    }, {status: 500})
     }
+    return NextResponse.json({
+        success: true,
+        message: "Cron jobs ran successfully"
+    }, {status: 200})
 }
