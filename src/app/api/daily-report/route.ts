@@ -90,7 +90,12 @@ const creditSaleCount = await TransactionModel.countDocuments({
 
 await NotificationModel.create({
     title: "Today's Report",
-    message: `Today's Summary: ₹${saleAmount} sales, ₹${purchaseAmount} purchases, ${creditSaleCount} credit sales.`
+    message: `Today's Summary: ₹${saleAmount} sales, ₹${purchaseAmount} purchases, ${creditSaleCount} credit sales.`,
+    type: "info",
+    isRead: "false"
 })
-
+return NextResponse.json({
+                    success: true,
+                    message: "Daily report sent successfully"
+                }, {status: 200})
 }
