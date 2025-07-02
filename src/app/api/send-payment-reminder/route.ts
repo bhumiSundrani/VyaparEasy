@@ -38,6 +38,7 @@ export async function GET () {
     today.setHours(0, 0, 0, 0)
 
     const transactions = await TransactionModel.find({
+        userId: user._id,
         type: 'sale',
         paymentType: 'credit',
         paid: false,
@@ -51,37 +52,40 @@ export async function GET () {
         return
     }
 
-    for(const txn of transactions){
-        if (txn?.dueDate) {
-        const due = new Date(txn.dueDate);
-        due.setHours(0, 0, 0, 0);
-        const daysDiff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        if ([-2, 0, 2].includes(daysDiff)) {
-            const message = `
-            Hi ${txn.customer?.name}, your payment of ₹${txn.totalAmount} on purchase on ${txn.transactionDate.toLocaleDateString()} is ${daysDiff === 2 ? `due in 2 days.`: daysDiff === 0 ? `due today.`: `overdue by 2 days`}. Please pay at your earliest convenience.
-            `;
-            const phone = txn.customer?.phone;
-            if(phone) {
-                const res = await sendSMS(phone, message)
-                if(res) {await NotificationModel.create({
-                    user: user,
-                    title: "Payment alert sent to customer",
-                    message: `Repayment reminder of ₹${txn.totalAmount} is sent to ${txn.customer?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}.`,
-                    type: "reminder",
-                    isRead: false
-                })
-                return NextResponse.json({
-                    success: true,
-                    message: "Reminder sent to customer"
-                }, {status: 200})
-            }
-            }else{
-                return NextResponse.json({
-                    success: false,
-                    message: "Failed to send reminder"
-                }, {status: 500})
+    try {
+        for(const txn of transactions){
+            if (txn?.dueDate) {
+            const due = new Date(txn.dueDate);
+            due.setHours(0, 0, 0, 0);
+            const daysDiff = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if ([-2, 0, 2].includes(daysDiff)) {
+                const message = `
+                Hi ${txn.customer?.name}, your payment of ₹${txn.totalAmount} on purchase on ${txn.transactionDate.toLocaleDateString()} is ${daysDiff === 2 ? `due in 2 days.`: daysDiff === 0 ? `due today.`: `overdue by 2 days`}. Please pay at your earliest convenience.
+                `;
+                const phone = txn.customer?.phone;
+                if(phone) {
+                    const res = await sendSMS(phone, message)
+                    if(res) {await NotificationModel.create({
+                        user: user._id,
+                        title: "Payment alert sent to customer",
+                        message: `Repayment reminder of ₹${txn.totalAmount} is sent to ${txn.customer?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}.`,
+                        type: "reminder",
+                        isRead: false
+                    })
+                    return NextResponse.json({
+                        success: true,
+                        message: "Reminder sent to customer"
+                    }, {status: 200})
+                }
+                }
             }
         }
-    }
+        }
+    } catch (error) {
+        console.log("Error sending reminder to customer: ", error)
+         return NextResponse.json({
+                        success: false,
+                        message: "Failed to send reminder"
+                    }, {status: 500})
     }
 }
