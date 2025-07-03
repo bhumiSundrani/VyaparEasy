@@ -73,10 +73,6 @@ export async function GET(){
                         type: "reminder",
                         isRead: false
                 })
-                return NextResponse.json({
-                    success: true,
-                    message: "Payment alert sent successfully"
-                }, {status: 200})
             }
         }
         const sales = await TransactionModel.find({
@@ -110,10 +106,6 @@ export async function GET(){
                         type: "reminder",
                         isRead: false
                     })
-                    return NextResponse.json({
-                        success: true,
-                        message: "Reminder sent to customer"
-                    }, {status: 200})
                 }
                 }
             }

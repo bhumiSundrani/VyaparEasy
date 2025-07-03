@@ -213,7 +213,7 @@ export async function GET(){
         const products = await ProductModel.find({ user: user._id }).populate({
             path: 'category',
             select: 'name'
-        });
+        }).sort({ createdAt: -1 }).sort({updatedAt: -1});
 
         return NextResponse.json(
       {

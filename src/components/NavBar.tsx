@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { setUser } from '@/app/store/slices/authSlice';
 import { useEffect } from 'react';
 import { LogoutButton } from './LogoutButton';
+import NotificationsDropdown from './NotificationDropdown';
 
 export default function Navbar() {
   const dispatch = useDispatch()
@@ -38,20 +39,18 @@ export default function Navbar() {
   if(pageLoading) return <Loader/>
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 border-b bg-white shadow-sm">
+    <header className="flex items-center justify-between md:justify-end px-6 py-3 border-b bg-white shadow-sm">
       <div className='relative md:hidden'>
         <SideBar setPageLoading={() => setPageLoading(true)}/>
       </div>
 
       <div className="flex items-center gap-4">
         {/* Optional: Notifications */}
-        <button className="relative">
-          <FiBell className="text-xl" />
+          <NotificationsDropdown/>
           {/* <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full"></span> */}
-        </button>
 
         {/* User Info / Logout */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center  gap-2">
           <span className="font-medium">Hi, {user?.name}</span>
           <LogoutButton setPageLoading={setPageLoading}/>
         </div>

@@ -66,15 +66,15 @@ const totalSale = await TransactionModel.aggregate([{
         type: "sale",
         transactionDate: {
         $gte: today,
-        $lt: tomorrow,
+        $lte: tomorrow,
       },
 
-    }, 
-    $group: {
+    }
+}, 
+   { $group: {
         _id: null,
         totalSaleAmount: {$sum: "$totalAmount"}
-    }
-}])
+    }}])
 
 const saleAmount = totalSale[0]?.totalSaleAmount || 0;
 
@@ -89,10 +89,11 @@ const creditSaleCount = await TransactionModel.countDocuments({
 })
 
 await NotificationModel.create({
+    user: user._id,
     title: "Today's Report",
     message: `Today's Summary: ₹${saleAmount} sales, ₹${purchaseAmount} purchases, ${creditSaleCount} credit sales.`,
     type: "info",
-    isRead: "false"
+    isRead: false
 })
 return NextResponse.json({
                     success: true,
