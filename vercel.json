@@ -6,7 +6,7 @@
       "schedule": "30 23 * * *"
     }, {
       "path": "/api/daily-report",
-      "schedule": "19 10 * * *"
+      "schedule": "27 10 * * *"
     }
   ]
 }
