@@ -3,10 +3,10 @@
   "crons": [
     {
       "path": "/api/cron-jobs",
-      "schedule": "30 23 * * *"
+      "schedule": "30 3 * * *"
     }, {
       "path": "/api/daily-report",
-      "schedule": "27 10 * * *"
+      "schedule": "0 16 * * *"
     }
   ]
 }
