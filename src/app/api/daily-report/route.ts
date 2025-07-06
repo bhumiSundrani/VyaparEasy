@@ -95,6 +95,7 @@ await NotificationModel.create({
     type: "info",
     isRead: false
 })
+console.log("Daily Report sent at: ", new Date().toISOString());
 return NextResponse.json({
                     success: true,
                     message: "Daily report sent successfully"

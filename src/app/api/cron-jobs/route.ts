@@ -112,6 +112,7 @@ export async function GET(){
         }
         }
     }
+    console.log("🕒 Cron job triggered at", new Date().toISOString());
     return NextResponse.json({
         success: true,
         message: "Cron jobs ran successfully"
