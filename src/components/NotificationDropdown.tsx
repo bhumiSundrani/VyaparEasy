@@ -10,6 +10,26 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import axios from 'axios';
 
+function formatDateGroup(date: Date): 'Today' | 'Yesterday' | 'Earlier' {
+  const now = new Date();
+  const inputDate = new Date(date);
+  
+  const isToday = inputDate.toDateString() === now.toDateString();
+  
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = inputDate.toDateString() === yesterday.toDateString();
+  
+  if (isToday) return 'Today';
+  if (isYesterday) return 'Yesterday';
+  return 'Earlier';
+}
+
+function formatTime(date: Date): string {
+  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+
 interface Notification {
   _id: string;
   type: "info" | "reminder" | "stock_alert" | "error";
@@ -47,6 +67,9 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMarkAsRead, isMobile = false }) => {
+
+  
+
   const getIconBackground = (type: string): string => {
     switch (type) {
       case 'stock_alert':
@@ -78,15 +101,17 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
           <p className={`text-sm text-muted-foreground mt-1 ${isMobile ? 'text-base' : ''}`}>
             {notification.message}
           </p>
-          <div className='flex justify-between items-center'>
-            {/* <span className={`text-xs p-1 text-muted-foreground mt-1 block ${isMobile ? 'text-sm' : ''}`}>
-              {notification.createdAt.toLocaleDateString()}
-            </span> */}
-              <span className={`hidden group-hover:block hover:bg-gray-200 rounded p-1 relative text-blue-500 text-xs hover:text-blue-600 cursor-pointer transition-all duration-300 sm:text-sm`} 
-                    onClick={() => onMarkAsRead(notification._id)}>
-                Mark as read
-              </span>
-          </div>          
+          <div className='flex justify-between items-center mt-1'>
+            <span className="text-xs text-muted-foreground p-1">
+              {formatTime(new Date(notification.createdAt))}
+            </span>
+            <span
+              className="hidden group-hover:block hover:bg-gray-200 rounded p-1 relative text-blue-500 text-xs hover:text-blue-600 cursor-pointer transition-all duration-300 sm:text-sm"
+              onClick={() => onMarkAsRead(notification._id)}
+            >
+              Mark as read
+            </span>
+          </div>      
         </div>
       </div>
     </div>
@@ -127,6 +152,13 @@ const NotificationsDropdown: React.FC = () => {
   // Show only first 3 notifications in dropdown, all in "View All" mode
   const displayedNotifications = showAllNotifications ? notifications : notifications.slice(0, 3);
 
+  const groupedNotifications = displayedNotifications.reduce((groups: Record<string, Notification[]>, notification) => {
+  const group = formatDateGroup(new Date(notification.createdAt));
+  if (!groups[group]) groups[group] = [];
+  groups[group].push(notification);
+  return groups;
+}, {});
+
   const markAsRead = async (id: string) => {
     console.log(id)
     try {
@@ -143,7 +175,10 @@ const NotificationsDropdown: React.FC = () => {
   const markAllAsRead = async () => {
     try {
       const res = await axios.patch("/api/read-notifications")
-      if(res) setNotifications([]);
+      if(res){
+         setNotifications([])
+        setIsOpen(false)
+        };
     } catch (error) {
       console.log("Error marking notifications as read: ", error)
     }
@@ -178,7 +213,7 @@ const NotificationsDropdown: React.FC = () => {
         side={isMobile ? "bottom" : "bottom"}
         sideOffset={isMobile ? 8 : 4}
       >
-        <Card className="p-0 border-0 shadow-none h-full flex flex-col">
+        <Card className="p-0 border-0  shadow-none h-full flex flex-col">
           {/* Header */}
           <div className={`border-b shrink-0 ${isMobile ? 'p-3' : 'p-5'}`}>
             <div className="flex items-center justify-between">
@@ -199,24 +234,32 @@ const NotificationsDropdown: React.FC = () => {
           </div>
 
           {/* Scrollable Notifications List */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 py-0 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="py-1">
-                {displayedNotifications.length > 0 ? (
-                  displayedNotifications.map(notification => (
-                    <NotificationItem
-                      key={notification._id}
-                      notification={notification}
-                      onMarkAsRead={markAsRead}
-                      isMobile={isMobile}
-                    />
-                  ))
-                ) : (
-                  <div className={`text-center text-muted-foreground ${!isMobile ? 'p-12' : 'p-8'}`}>
-                    <Bell className={`mx-auto mb-2 opacity-50 ${!isMobile ? 'w-12 h-12' : 'w-8 h-8'}`} />
-                    <p className={!isMobile ? 'text-base' : 'text-sm'}>No notifications</p>
-                  </div>
-                )}
+              <div className='m-0 p-0'>
+                {Object.keys(groupedNotifications).length > 0 ? (
+  Object.entries(groupedNotifications).map(([groupTitle, group]) => (
+    <div key={groupTitle}>
+      <h4 className="px-4 pb-1 pt-0 text-muted-foreground text-xs uppercase font-semibold tracking-wider">
+        {groupTitle}
+      </h4>
+      {group.map((notification) => (
+        <NotificationItem
+          key={notification._id}
+          notification={notification}
+          onMarkAsRead={markAsRead}
+          isMobile={isMobile}
+        />
+      ))}
+    </div>
+  ))
+) : (
+  <div className={`text-center text-muted-foreground ${!isMobile ? 'p-12' : 'p-8'}`}>
+    <Bell className={`mx-auto mb-2 opacity-50 ${!isMobile ? 'w-12 h-12' : 'w-8 h-8'}`} />
+    <p className={!isMobile ? 'text-base' : 'text-sm'}>No notifications</p>
+  </div>
+)}
+
               </div>
             </ScrollArea>
           </div>
