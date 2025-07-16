@@ -128,7 +128,7 @@ export async function GET(){
             }, { status: 401 });
         }
 
-        const categories = await CategoryModel.find({ user: user._id }).populate("parentCategory", "name").sort({ createdAt: -1 }).sort({updatedAt: -1});
+        const categories = await CategoryModel.find({ user: user._id }).populate("parentCategory", "name") .sort({updatedAt: -1, createdAt: -1 }); ;
         
         if(!categories || categories.length === 0){
             return NextResponse.json({

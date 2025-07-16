@@ -43,14 +43,28 @@ export async function GET() {
     });
 
     for (const txn of purchases) {
+      if (txn?.dueDate) {
+        const due = new Date(txn.dueDate);
+        due.setHours(0, 0, 0, 0);
+
+      const daysDiff = Math.round(
+          (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+      if ([-2, 0, 2].includes(daysDiff)) {
       await NotificationModel.create({
         user: user._id,
         title: "Payment due to vendor",
-        message: `Payment of ₹${txn.totalAmount} is due to ${txn.supplier?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}.`,
+        message: `Payment of ₹${txn.totalAmount} is due to ${txn.supplier?.name} for purchase on ${txn.transactionDate.toLocaleDateString()}. is ${
+            daysDiff === 2
+              ? `due in 2 days.`
+              : daysDiff === 0
+              ? `due today.`
+              : `overdue by 2 days.`
+          } Please pay at your earliest.`,
         type: "reminder",
         isRead: false,
       });
-    }
+    }}
 
     // 3. Customer Repayment Due (Sales Credit)
     const sales = await TransactionModel.find({
@@ -74,7 +88,7 @@ export async function GET() {
 
         if ([-2, 0, 2].includes(daysDiff)) {
           const message = `
-Hi ${txn.customer?.name}, your payment of ₹${txn.totalAmount} on purchase on ${txn.transactionDate.toLocaleDateString()} is ${
+Hi ${txn.customer?.name}, your payment of ₹${txn.totalAmount} on purchase on ${txn.transactionDate.toLocaleDateString()} from ${user.shopName} is ${
             daysDiff === 2
               ? `due in 2 days.`
               : daysDiff === 0
@@ -109,4 +123,4 @@ Hi ${txn.customer?.name}, your payment of ₹${txn.totalAmount} on purchase on $
     },
     { status: 200 }
   );
-}
+}}

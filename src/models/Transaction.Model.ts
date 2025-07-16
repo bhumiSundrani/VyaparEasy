@@ -18,7 +18,8 @@ export interface Transaction extends Document{
         productId: Types.ObjectId;
         productName: string;
         quantity: number;
-        pricePerUnit: number
+        pricePerUnit: number;
+        costPrice?: number
     }[];
     totalAmount: number;
     otherExpenses?: {
@@ -81,6 +82,9 @@ const TransactionSchema: Schema<Transaction> = new Schema({
         pricePerUnit: {
             type: Number,
             required: true
+        },
+        costPrice: {
+            type: Number
         }
     }],
     totalAmount: {

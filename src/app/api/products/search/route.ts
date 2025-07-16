@@ -46,11 +46,11 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    if (query.length < 2) {
+    if (query.length < 1) {
       return NextResponse.json({ 
         success: true, 
         products: [],
-        message: "Search query must be at least 2 characters"
+        message: "Search query must be at least 1 character"
       });
     }
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         }
       ]
     })
-    .select('_id name sellingPrice currentStock unit category lowStockThreshold imageUrl')
+    .select('_id name sellingPrice costPrice currentStock unit category lowStockThreshold imageUrl')
     .limit(20)
     .sort({ name: 1 })
     .lean();

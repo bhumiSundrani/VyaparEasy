@@ -10,7 +10,8 @@ export const salesVerificationSchema = z.object({
         productId: z.string().min(1, "Product ID is required"),
         productName: z.string().min(1, "Product name is required"),
         quantity: z.number().positive("Quantity must be positive"),
-        pricePerUnit: z.number().positive("Price must be positive") 
+        pricePerUnit: z.number().positive("Price must be positive"),
+        costPrice: z.number().positive("Cost price must be positive").optional(),
     })).min(1, "At least one item is required"),
     totalAmount: z.number().positive("Total amount must be positive"),
     transactionDate: z.preprocess(

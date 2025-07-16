@@ -106,7 +106,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
               {formatTime(new Date(notification.createdAt))}
             </span>
             <span
-              className="hidden group-hover:block hover:bg-gray-200 rounded p-1 relative text-blue-500 text-xs hover:text-blue-600 cursor-pointer transition-all duration-300 sm:text-sm"
+              className="hover:bg-gray-200 rounded p-1 relative text-blue-500 text-xs hover:text-blue-600 cursor-pointer transition-all duration-300 sm:text-sm"
               onClick={() => onMarkAsRead(notification._id)}
             >
               Mark as read

@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
           productName: item.productName,
           quantity: item.quantity,
           pricePerUnit: item.pricePerUnit,
+          costPrice: item.costPrice
       }));
 
       // Format supplier phone with +91 prefix

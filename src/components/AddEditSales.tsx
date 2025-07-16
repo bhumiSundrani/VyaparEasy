@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {PlusCircle, Trash2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ProductColumnData } from "@/tanstackColumns/productColumn";
 
 export interface SaleFormData {
   _id: string,
@@ -37,7 +38,8 @@ export interface SaleFormData {
     productId: string,
     productName: string,
     quantity: number,
-    pricePerUnit: number
+    pricePerUnit: number,
+    costPrice: number
   }[],
   totalAmount: number,
   transactionDate?: Date
@@ -47,11 +49,9 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
   const [adding, setAdding] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
   const [submitErrors, setSubmitErrors] = useState<string[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<(ProductColumnData | undefined)[]>([]);
   const router = useRouter()
   
-  // Debug logging for the SelectParties issue
-  console.log('Sale data:', sale);
-  console.log('Customer name from sale:', sale?.customer?.name);
   
   const form = useForm<SaleFormData>({
     defaultValues: {
@@ -66,18 +66,21 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         productId: item.productId,
         productName: item.productName,
         quantity: item.quantity,
-        pricePerUnit: item.pricePerUnit
+        pricePerUnit: item.pricePerUnit,
+        costPrice: item.costPrice
       })) : [{
         productId: "",
         productName: "",
         quantity: 1,
-        pricePerUnit: 0
+        pricePerUnit: 0,
+        costPrice: 0
       }]
       : [{
         productId: "",
         productName: "",
         quantity: 1,
-        pricePerUnit: 0
+        pricePerUnit: 0,
+        costPrice: 0
       }],
       totalAmount: sale?.totalAmount ?? 0,
       transactionDate: sale?.transactionDate
@@ -86,6 +89,13 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
     },
     mode: 'onChange',
   });
+
+  useEffect(() => {
+  if (sale && sale.items.length > 0) {
+    const initialProducts = sale.items.map(() => undefined); // We don't have full product info here
+    setSelectedProducts(initialProducts);
+  }
+}, [sale]);
 
   const {
     control,
@@ -105,6 +115,10 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
   const calculateItemsTotal = useCallback(() => {
     return items.reduce((acc, item) => acc + (item.quantity * item.pricePerUnit || 0), 0);
   }, [items]);
+
+  useEffect(() => {
+  form.setValue("totalAmount", calculateItemsTotal(), { shouldValidate: true });
+}, [items, calculateItemsTotal]);
 
   const customerName = form.watch("customer.name");
 
@@ -136,6 +150,9 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
         if (!item.pricePerUnit || item.pricePerUnit <= 0) {
           errors.push(`Valid price is required for item ${index + 1}`);
         }
+        if(!item.costPrice || item.costPrice <= 0){
+          errors.push(`Valid price is required for item ${index + 1}`);
+        }
       });
     }
     
@@ -149,8 +166,7 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
   };
 
   const onSubmit = async (data: SaleFormData) => {
-    console.log("Submitting data:", data);
-    
+    console.log(data)
     // Clear previous errors
     setSubmitErrors([]);
     clearErrors();
@@ -325,11 +341,9 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                       defaultPartyType="customer"
                       value={customerName}
                       onChange={(val) => {
-                        console.log('Customer name changed to:', val);
                         form.setValue("customer.name", val, { shouldValidate: true });
                       }}
                       onSelect={(customer) => {
-                        console.log('Customer selected:', customer);
                         form.setValue("customer.name", customer.name, { shouldValidate: true });
                         form.setValue("customer.phone", customer.phone, { shouldValidate: true });
                       }}
@@ -434,6 +448,11 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                                   field.onChange(productId);
                                 }}
                                 onSelect={(product) => {
+                                  const updatedProducts = [...selectedProducts];
+                                  updatedProducts[index] = product;
+                                  setSelectedProducts(updatedProducts);
+
+                                  console.log('Customer selected:', product);
                                   form.setValue(`items.${index}.productId`, product._id, {
                                     shouldValidate: true,
                                   });
@@ -446,6 +465,9 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                                   form.setValue(`items.${index}.pricePerUnit`, product.sellingPrice || 0, {
                                     shouldValidate: true,
                                   });
+                                  form.setValue(`items.${index}.costPrice`, product.costPrice || 0, {
+                                    shouldValidate: true
+                                  })
                                 }}
                                 className="text-sm border-gray-200"
                               />
@@ -463,7 +485,12 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                         name={`items.${index}.quantity`}
                         rules={{
                           required: "Quantity is required",
-                          min: { value: 1, message: "Quantity must be at least 1" }
+                          min: { value: 1, message: "Quantity must be at least 1" },                          
+                          max: {
+                            value: selectedProducts[index]?.currentStock ?? Infinity,
+                            message: `Only ${selectedProducts[index]?.currentStock ?? 0} ${selectedProducts[index]?.unit ?? "units"} in stock`
+                          }
+
                         }}
                         render={({ field }) => (
                           <FormItem>
@@ -477,7 +504,11 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                                 min="1"
                                 step="1"
                                 {...field} 
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                onChange={(e) => {                                  
+                                  field.onChange(Number(e.target.value))
+                                                                  
+                                }
+                                }
                                 className="h-10 text-sm border-gray-200 focus:border-blue-400"
                               />
                             </FormControl>
@@ -551,7 +582,7 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
                   type="button"
                   variant="outline"
                   onClick={() =>
-                    appendItem({ productId: "", productName: "", quantity: 1, pricePerUnit: 0 })
+                    appendItem({ productId: "", productName: "", quantity: 1, pricePerUnit: 0, costPrice: 0 })
                   }
                   className="w-full h-12 border-dashed border-2 border-green-300 text-green-600 hover:bg-green-50"
                 >
