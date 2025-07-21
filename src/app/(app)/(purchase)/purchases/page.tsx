@@ -13,19 +13,10 @@ import { Loader2 } from 'lucide-react'
 
 // Filter state interface
 interface PurchaseFilters {
-  searchTerm: string
-  dateRange: {
-    from: string
-    to: string
-  }
-  priceRange: {
-    min: string
-    max: string
-  }
-  status: string
-  supplier: string
-  paymentMethod: string
-  sortBy: string
+  searchTerm: string;
+  status: string;
+  paymentMethod: string;
+  sortBy: string;
   sortOrder: 'asc' | 'desc'
 }
 
@@ -39,10 +30,7 @@ function PurchasePage() {
     // Filter state
     const [filters, setFilters] = useState<PurchaseFilters>({
         searchTerm: '',
-        dateRange: { from: '', to: '' },
-        priceRange: { min: '', max: '' },
-        status: '',
-        supplier: '',
+        status: "",
         paymentMethod: '',
         sortBy: 'date',
         sortOrder: 'desc'
@@ -90,38 +78,13 @@ function PurchasePage() {
             )
         }
 
-        // Apply date range filter
-        if (filters.dateRange.from || filters.dateRange.to) {
-            filtered = filtered.filter(p => {
-                const purchaseDate = new Date(p.transactionDate)
-                const fromDate = filters.dateRange.from ? new Date(filters.dateRange.from) : null
-                const toDate = filters.dateRange.to ? new Date(filters.dateRange.to) : null
+        if (filters.status) {
+            const status = filters.status.trim().toLowerCase(); // "paid" | "unpaid"
+            const wantPaid = status === "paid";                 // boolean
+            filtered = filtered.filter(p => Boolean(p.paid) === wantPaid);
+        }
                 
-                if (fromDate && purchaseDate < fromDate) return false
-                if (toDate && purchaseDate > toDate) return false
-                return true
-            })
-        }
 
-        // Apply price range filter
-        if (filters.priceRange.min || filters.priceRange.max) {
-            filtered = filtered.filter(p => {
-                const amount = p.totalAmount || 0
-                const min = filters.priceRange.min ? parseFloat(filters.priceRange.min) : 0
-                const max = filters.priceRange.max ? parseFloat(filters.priceRange.max) : Infinity
-                
-                return amount >= min && amount <= max
-            })
-        }
-
-        
-
-        // Apply supplier filter
-        if (filters.supplier) {
-            filtered = filtered.filter(p => 
-                p.supplier?.name === filters.supplier
-            )
-        }
 
         // Apply payment method filter
         if (filters.paymentMethod) {
@@ -168,10 +131,7 @@ function PurchasePage() {
     const handleClearFilters = () => {
         setFilters({
             searchTerm: '',
-            dateRange: { from: '', to: '' },
-            priceRange: { min: '', max: '' },
             status: '',
-            supplier: '',
             paymentMethod: '',
             sortBy: 'date',
             sortOrder: 'desc'
@@ -232,7 +192,7 @@ function PurchasePage() {
             {/* Data Table */}
             <div className="bg-white rounded-lg shadow-sm">
                 <DataTable 
-                    columns={PurchaseColumns(handlePurchaseDeleted)} 
+                    columns={PurchaseColumns(handlePurchaseDeleted, setPurchase)} 
                     data={filteredAndSortedPurchases}
                     loading={loading}
                 />

@@ -15,29 +15,33 @@ export interface PurchaseColumnData {
     name: string;
     phone: string;
   };
-  items: [{
+  items: {
     productId: string
     productName: string
     quantity: number;
     pricePerUnit: number;
-  }];
+  }[];
   totalAmount: number;
-  otherExpenses: [{
+  otherExpenses: {
     name: string;
     amount: number;
-  }];
+  }[];
   transactionDate: Date;
+  paid: boolean;
 }
 
 // Enhanced Mobile Card Component with better styling
-const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, viewDisabled }: {
+const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, viewDisabled, paidDisabled, onPaid, paid }: {
   purchase: PurchaseColumnData;
   onEdit: () => void;
   onDelete: () => Promise<void>;
   onView: () => void;
+  onPaid: () => void;
   editDisabled: boolean;
   viewDisabled: boolean;
   deleteDisabled: boolean;
+  paidDisabled: boolean;
+  paid: boolean
 }) => {
   const totalItems = purchase.items.length;
   const totalQuantity = purchase.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -45,7 +49,7 @@ const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, 
   const isPaid = purchase.paymentType === 'cash';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 space-y-3 mb-3 max-w-[250px] ml-auto mr-auto">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 space-y-3 mb-3 min-w-[250px] ml-auto mr-auto">
       {/* Header Section - Supplier and Payment Info */}
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -148,7 +152,7 @@ const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, 
       </div>
 
       {/* Actions Section */}
-      <div className="flex gap-2 pt-1 flex-wrap items-center justify-center">
+      <div className="flex gap-1 pt-1 flex-wrap items-center justify-center">
         <Button
           variant="outline"
           size="sm"
@@ -184,6 +188,21 @@ const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, 
         </Button>
         
         <DeleteButton onDelete={onDelete} type="purchase entry"/>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPaid}
+          disabled={paidDisabled}
+          className={`h-9 text-sm font-medium outline-0 border-0 transition-colors text-white ${!paid ? "bg-green-500 hover:bg-green-600": "bg-amber-500 hover:bg-amber-600"}`}
+        >
+          {
+            paidDisabled ? (
+               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : paid ? ("Mark as unpaid") : ("Mark as paid")
+          }
+          
+        </Button>
       </div>
     </div>
   );
@@ -191,14 +210,17 @@ const MobilePurchaseCard = ({ purchase, onEdit, onDelete, onView, editDisabled, 
 
 interface MobileCardCellProps {
   purchase: PurchaseColumnData;
-  handlePurchaseDeleted: () => void;
+  handlePurchaseDeleted: () => void;  
+  setPurchase: React.Dispatch<React.SetStateAction<PurchaseColumnData[]>>
 }
 
-const MobileCardCell: React.FC<MobileCardCellProps> = ({ purchase, handlePurchaseDeleted }) => {
+const MobileCardCell: React.FC<MobileCardCellProps> = ({ purchase, handlePurchaseDeleted, setPurchase }) => {
   const router = useRouter();
   const [editDisabled, setEditDisabled] = React.useState(false);
   const [viewDisabled, setViewDisabled] = React.useState(false);
   const [deleteDisabled, setDeleteDisabled] = React.useState(false);
+  const [paidDisabled, setPaidDisabled] = React.useState(false)
+  const [isPaid, setIsPaid] = React.useState(purchase.paid)
 
   const handleEdit = () => {
     setEditDisabled(true);
@@ -228,6 +250,34 @@ const MobileCardCell: React.FC<MobileCardCellProps> = ({ purchase, handlePurchas
     }
   };
 
+  const handlePaid = async () => {
+    try {
+      setPaidDisabled(true);
+      const res = await axios.put(`/api/purchases/${purchase._id}`);
+       if (res.data?.purchase?.paid !== undefined) {
+  setPurchase((prev) =>
+    prev.map((p) =>
+      p._id === purchase._id ? { ...p, paid: res.data.purchase.paid } : p
+    )
+  );
+  setIsPaid(res.data.purchase.paid);
+}
+ else {
+      setIsPaid(prev => !prev); // fallback
+    }  
+    toast.success("Purchase updated successfully", {
+          icon: "✅",
+        });
+    } catch (error) {
+      console.log(error);
+      toast.error("Error updating purchase", {
+        icon: "❌",
+      });
+    } finally {
+      setPaidDisabled(false);
+    }
+  }
+
   return (
     <div className="md:hidden w-full md:-mx-4">
       <MobilePurchaseCard
@@ -238,6 +288,9 @@ const MobileCardCell: React.FC<MobileCardCellProps> = ({ purchase, handlePurchas
         editDisabled={editDisabled}
         viewDisabled={viewDisabled}
         deleteDisabled={deleteDisabled}
+        onPaid={handlePaid}
+        paidDisabled={paidDisabled}
+        paid={isPaid}
       />
     </div>
   );
@@ -246,12 +299,15 @@ const MobileCardCell: React.FC<MobileCardCellProps> = ({ purchase, handlePurchas
 interface DesktopActionsCellProps {
   purchase: PurchaseColumnData;
   handlePurchaseDeleted: () => void;
+  setPurchase: React.Dispatch<React.SetStateAction<PurchaseColumnData[]>>
 }
 
-const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ purchase, handlePurchaseDeleted }) => {
+const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ purchase, handlePurchaseDeleted, setPurchase }) => {
   const router = useRouter();
   const [editDisabled, setEditDisabled] = React.useState(false);
   const [viewDisabled, setViewDisabled] = React.useState(false);
+  const [paidDisabled, setPaidDisabled] = React.useState(false)
+  const [isPaid, setIsPaid] = React.useState(purchase.paid)
 
   const handleDeletePurchase = async () => {
     try {
@@ -267,6 +323,35 @@ const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ purchase, handl
       });
     }
   };
+
+  const handlePaid = async () => {
+    try {
+      setPaidDisabled(true);
+      const res = await axios.put(`/api/purchases/${purchase._id}`);
+         
+      if (res.data?.purchase?.paid !== undefined) {
+  setPurchase((prev) =>
+    prev.map((p) =>
+      p._id === purchase._id ? { ...p, paid: res.data.purchase.paid } : p
+    )
+  );
+  setIsPaid(res.data.purchase.paid);
+}
+ else {
+      setIsPaid(prev => !prev); // fallback
+    }  
+    toast.success("Purchase updated successfully", {
+          icon: "✅",
+        });
+    } catch (error) {
+      console.log(error);
+      toast.error("Error updating purchase", {
+        icon: "❌",
+      });
+    } finally {
+      setPaidDisabled(false);
+    }
+  }
 
   return (
     <div className="hidden md:flex gap-2">
@@ -311,19 +396,34 @@ const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ purchase, handl
       </Button>
 
       <DeleteButton onDelete={handleDeletePurchase} type="purchase entry"/>
+
+      <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePaid}
+          disabled={paidDisabled}
+          className={` h-9 text-sm font-medium outline-none border-none transition-colors text-white hover:text-white ${!isPaid ? "bg-green-500 hover:bg-green-600": "bg-amber-500 hover:bg-amber-600"}`}
+        >
+          {
+            paidDisabled ? (
+               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isPaid ? ("Mark as unpaid") : ("Mark as paid")
+          }
+          
+        </Button>
     </div>
   );
 };
 
 // Convert purchaseColumns to a function that accepts handlePurchaseDeleted callback
-export const PurchaseColumns = (handlePurchaseDeleted: () => void): ColumnDef<PurchaseColumnData>[] => [
+export const PurchaseColumns = (handlePurchaseDeleted: () => void, setPurchase: React.Dispatch<React.SetStateAction<PurchaseColumnData[]>>,): ColumnDef<PurchaseColumnData>[] => [
   // Mobile-first: Single column that renders cards on mobile, hidden on desktop
   {
     id: "mobile-card",
     header: () => null,
     cell: ({ row }) => {
       const purchase = row.original;
-      return <MobileCardCell purchase={purchase} handlePurchaseDeleted={handlePurchaseDeleted} />;
+      return <MobileCardCell purchase={purchase} handlePurchaseDeleted={handlePurchaseDeleted} setPurchase={setPurchase}/>;
     },
     enableSorting: false,
   },
@@ -433,7 +533,7 @@ export const PurchaseColumns = (handlePurchaseDeleted: () => void): ColumnDef<Pu
             }`}
           >
             <CreditCard className="h-3 w-3 mr-1" />
-            {isPaid ? "Paid" : "Credit"}
+            {isPaid ? "Cash" : "Credit"}
           </span>
         </div>
       );
@@ -476,7 +576,7 @@ export const PurchaseColumns = (handlePurchaseDeleted: () => void): ColumnDef<Pu
     size: 180,
     cell: ({ row }) => {
       const purchase = row.original;
-      return <DesktopActionsCell purchase={purchase} handlePurchaseDeleted={handlePurchaseDeleted} />;
+      return <DesktopActionsCell purchase={purchase} handlePurchaseDeleted={handlePurchaseDeleted} setPurchase={setPurchase}/>;
     },
     enableSorting: false,
   },

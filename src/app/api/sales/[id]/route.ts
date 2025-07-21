@@ -103,3 +103,72 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         }, {status: 500})
     }
 }
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: ObjectId }> }){
+  try {
+        await dbConnect();
+        const { id } = await params;
+               
+        const cookieHeader = await cookies()
+        const token = cookieHeader.get('token')?.value
+        if (!token) {
+          console.log("No token found in cookies");
+          return NextResponse.json({
+              success: false,
+              message: "Unauthorized access"
+          }, { status: 401 });
+      }
+
+      const decodedToken = await verifyToken(token);
+      if (!decodedToken) {
+          console.log("Invalid token");
+          return NextResponse.json({
+              success: false,
+              message: "Invalid token"
+          }, { status: 401 });
+      }
+
+      const user = await UserModel.findOne({ phone: decodedToken.phone });
+      if (!user) {
+          return NextResponse.json({
+              success: false,
+              message: "User not found"
+          }, { status: 401 });
+      }
+
+      const sale = await TransactionModel.findByIdAndUpdate(
+        id,
+        [
+          {
+            $set: {
+              paid: { $not: "$paid" }, // flip true ↔ false
+            },
+          },
+        ],
+        { new: true } // return updated doc
+      );
+
+      if (!sale) {
+        return NextResponse.json({
+          success: false,
+          message: "Sale not found"
+        }, { status: 404 });
+      }
+
+      
+
+      // Format the purchase data to match PurchaseFormData interface
+    
+      return NextResponse.json({
+        success: true,
+        message: "Sale updated successfully",
+        sale
+      }, {status: 200})
+    } catch (error) {
+        console.error("Error updating sale:", error);
+        return NextResponse.json({
+            success: false,
+            message: error instanceof Error ? error.message : "Error updating purchase"
+        }, {status: 500})
+    }
+}

@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Search, 
-  Filter, 
-  Calendar, 
-  DollarSign, 
-  Package, 
-  User, 
-  X,
-  ChevronDown,
-  RefreshCw
+  X
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -19,29 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Badge } from "@/components/ui/badge"
 
 // Types for filter state
 interface PurchaseFilters {
-  searchTerm: string
-  dateRange: {
-    from: string
-    to: string
-  }
-  priceRange: {
-    min: string
-    max: string
-  }
-  status: string
-  supplier: string
-  paymentMethod: string
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
+  searchTerm: string;
+  status: string;
+  paymentMethod: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 interface FilterComponentProps {
@@ -57,21 +35,16 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
   filters,
   onFiltersChange,
   onClearFilters,
-  suppliers = [],
   loading = false,
   label
 }) => {
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [activeFiltersCount, setActiveFiltersCount] = useState(0)
 
   // Count active filters
   useEffect(() => {
     let count = 0
     if (filters.searchTerm) count++
-    if (filters.dateRange.from || filters.dateRange.to) count++
-    if (filters.priceRange.min || filters.priceRange.max) count++
     if (filters.status) count++
-    if (filters.supplier) count++
     if (filters.paymentMethod) count++
     setActiveFiltersCount(count)
   }, [filters])
@@ -97,6 +70,12 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
     { value: 'supplier', label: label },
   ]
 
+  const statusOptions = [
+    {value: 'all', label: "All"},
+    {value: 'paid', label: "Paid"},
+    {value: 'unpaid', label: "Unpaid"}
+  ]
+
   return (
     <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
       {/* Search and Quick Actions Row */}
@@ -116,10 +95,34 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
         <div className="flex items-center gap-2">
 
           <div className='flex items-center gap-2'>
-            <Select value={filters.paymentMethod} onValueChange={(value) => {
-              if( value === 'all' ) value=""
-              updateFilter('paymentMethod', value)}
-            }>
+          <Select
+            value={filters.status}
+            onValueChange={(value) => {
+              const next = value === 'all' ? '' : value;
+              updateFilter('status', next);
+            }}
+          >
+              <SelectTrigger className='w-32 text-sm'>
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                )) }
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <Select
+            value={filters.paymentMethod}
+            onValueChange={(value) => {
+              const next = value === 'all' ? '' : value;
+              updateFilter('paymentMethod', next);
+            }}
+          >
               <SelectTrigger className='w-32 text-sm'>
                 <SelectValue placeholder="All" />
               </SelectTrigger>
