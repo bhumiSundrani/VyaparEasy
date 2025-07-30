@@ -40,12 +40,22 @@ export async function GET (req: NextRequest){
                const recentSales = TransactionModel.find({
                 userId: user._id,
                 type: "sale"
-               }).limit(5)
+               }).sort({ createdAt: -1 })
+                .limit(5)
+                .lean();  // Converts Mongoose docs into plain JS objects
+
+                const recentSalesSerialized = (await recentSales).map(sale => ({
+  ...sale,
+  _id: sale._id.toString(),
+}));
+
+               console.log('recentSales is:', Array.isArray(recentSales), typeof recentSales, recentSales?.constructor?.name);
+
 
     return NextResponse.json({
         success: true,
         message: "Recent sales data received",
-        recentSales
+        recentSales: recentSalesSerialized
     }, {status: 200})
 
 

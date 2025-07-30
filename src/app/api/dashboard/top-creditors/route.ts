@@ -48,7 +48,8 @@ export async function GET (req: NextRequest){
     $group: {
       _id: "$customer.phone", // or name if phone not available
       customerName: { $first: "$customer.name" },
-      totalOutstanding: { $sum: "$totalAmount" }
+      totalOutstanding: { $sum: "$totalAmount" },
+      phone: {$first: "$customer.phone"}
     }
   },
   {

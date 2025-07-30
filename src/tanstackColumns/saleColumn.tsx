@@ -323,7 +323,7 @@ const DesktopActionsCell: React.FC<DesktopActionsCellProps> = ({ sale, handleSal
       p._id === sale._id ? { ...p, paid: res.data.sale.paid } : p
     )
   );
-  setIsPaid(res.data.purchase.paid);
+  setIsPaid(res.data.sale.paid);
 }
  else {
       setIsPaid(prev => !prev); // fallback

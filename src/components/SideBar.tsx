@@ -108,8 +108,8 @@ const SideBar: React.FC<SideBarProps> = ({ setPageLoading }) => {
             <NavSection
               title="Menu"
               items={[
-                { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "" },
-                { label: 'Analytics', icon: <BarChart2 size={18} />, redirectUrl: "" },
+                { label: 'Dashboard', icon: <LayoutDashboard size={18} />, redirectUrl: "/dashboard" },
+                { label: 'Analytics', icon: <BarChart2 size={18} />, redirectUrl: "/analytics" },
               ]}
               onItemClick={handleNavigation}
             />

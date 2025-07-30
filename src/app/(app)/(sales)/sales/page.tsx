@@ -171,7 +171,7 @@ function PurchasePage() {
                 <div className="flex items-center space-x-1 sm:space-x-2">
                     <Image
                         src="/4064925.png"
-                        alt="Purchase Management"
+                        alt="Sale Management"
                         width={30}
                         height={30}
                         className="object-contain sm:h-[40px] sm:w-[40px]"

@@ -40,12 +40,20 @@ export async function GET (req: NextRequest){
                const recentPurchases = TransactionModel.find({
                 userId: user._id,
                 type: "purchase"
-               }).limit(5)
+               }).sort({ createdAt: -1 })
+                .limit(5)
+                .lean(); 
+
+                const recentPurchaseSerialized = (await recentPurchases).map(purchase => ({
+  ...purchase,
+  _id: purchase._id.toString(),
+}));
+
 
     return NextResponse.json({
         success: true,
         message: "Recent purchases data received",
-        recentPurchases
+        recentPurchases: recentPurchaseSerialized
     }, {status: 200})
 
 
