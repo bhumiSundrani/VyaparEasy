@@ -118,7 +118,7 @@ const SalesForm = ({sale}: {sale: SaleFormData | null}) => {
 
   useEffect(() => {
   form.setValue("totalAmount", calculateItemsTotal(), { shouldValidate: true });
-}, [items, calculateItemsTotal]);
+}, [items, calculateItemsTotal, form]);
 
   const customerName = form.watch("customer.name");
 

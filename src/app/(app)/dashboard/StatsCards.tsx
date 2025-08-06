@@ -73,7 +73,7 @@ const StatsCards = () => {
       <div className="bg-white rounded-2xl shadow-lg p-6">
         {/* Header */}
         <div className="sm:text-2xl text-xl font-bold text-gray-800 mb-6">
-          Today's Stats
+          Today&apos;s Stats
         </div>
 
         {/* Grid Cards */}
