@@ -1,12 +1,12 @@
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
-import NotificationModel from "@/models/Notification.model";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
-import { User } from "lucide-react";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET (req: NextRequest){
+    await dbConnect()
     // Get user from token
             const cookieStore = await cookies();
             const { searchParams } = new URL(req.url);

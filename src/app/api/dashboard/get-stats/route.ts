@@ -1,3 +1,4 @@
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import ProductModel from "@/models/Product.model";
@@ -8,6 +9,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET (){
+        await dbConnect()
+
     // Get user from token
             const cookieStore = await cookies();
             const token = cookieStore.get('token')?.value;
