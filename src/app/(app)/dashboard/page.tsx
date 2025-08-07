@@ -11,7 +11,7 @@ import LowStockAlert from './LowStockAlert'
 const Dashboard = () => {
     const router = useRouter()
   return (
-    <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12">
+    <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12 overflow-auto">
         <div className="mb-3 sm:mb-6 ml-2 flex flex-col sm:flex-row justify-between sm:w-full space-y-3.5 my-auto">
             <div className="flex items-center space-x-1 sm:space-x-2">
                 <Image

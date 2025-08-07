@@ -210,7 +210,7 @@ function PurchasePage() {
             </div>
 
             {/* Data Table */}
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="mt-4">
                 <DataTable 
                     columns={SaleColumn(handleSaleDeleted, setSale)} 
                     data={filteredAndSortedPurchases}

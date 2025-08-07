@@ -77,105 +77,101 @@ const PurchaseFilters: React.FC<FilterComponentProps> = ({
   ]
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
-      {/* Search and Quick Actions Row */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            type="text"
-            value={filters.searchTerm}
-            onChange={(e) => updateFilter('searchTerm', e.target.value)}
-            placeholder="Search purchases by invoice, supplier, or notes..."
-            className="pl-10 text-sm"
-            disabled={loading}
-          />
-        </div>
-        <div className="flex items-center gap-2">
+    <div className="w-full bg-white p-2 sm:p-4 rounded-lg shadow-xl">
+  {/* Container: stack vertically on mobile, flex row on sm+ */}
+  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
 
-          <div className='flex items-center gap-2'>
-          <Select
-            value={filters.status}
-            onValueChange={(value) => {
-              const next = value === 'all' ? '' : value;
-              updateFilter('status', next);
-            }}
-          >
-              <SelectTrigger className='w-32 text-sm'>
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                )) }
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className='flex items-center gap-2'>
-            <Select
-            value={filters.paymentMethod}
-            onValueChange={(value) => {
-              const next = value === 'all' ? '' : value;
-              updateFilter('paymentMethod', next);
-            }}
-          >
-              <SelectTrigger className='w-32 text-sm'>
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                {paymentMethodOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                )) }
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2">
-            <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
-              <SelectTrigger className="w-32 text-sm">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                {sortOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => updateFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-3"
-            >
-              {filters.sortOrder === 'asc' ? '↑' : '↓'}
-            </Button>
-          </div>
-
-          {/* Clear Filters */}
-          {activeFiltersCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClearFilters}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
-          )}
-        </div>
-      </div>
+    {/* Left side: Search input */}
+    <div className="w-full sm:flex-1 relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+      <Input
+        type="text"
+        value={filters.searchTerm}
+        onChange={(e) => updateFilter('searchTerm', e.target.value)}
+        placeholder="Search purchases by invoice, supplier, or notes..."
+        className="pl-10 text-sm"
+        disabled={loading}
+      />
     </div>
+
+    {/* Right side: Filters, sort, and clear */}
+    <div className="w-full sm:w-auto flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 sm:gap-3">
+
+      {/* Status Filter */}
+      <Select
+        value={filters.status}
+        onValueChange={(value) => updateFilter('status', value === 'all' ? '' : value)}
+      >
+        <SelectTrigger className="w-full sm:w-32 text-sm">
+          <SelectValue placeholder="All" />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptions.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Payment Method Filter */}
+      <Select
+        value={filters.paymentMethod}
+        onValueChange={(value) => updateFilter('paymentMethod', value === 'all' ? '' : value)}
+      >
+        <SelectTrigger className="w-full sm:w-32 text-sm">
+          <SelectValue placeholder="All" />
+        </SelectTrigger>
+        <SelectContent>
+          {paymentMethodOptions.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Sort Options */}
+      <div className="flex gap-2">
+        <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
+          <SelectTrigger className="w-32 text-sm">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            {sortOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => updateFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
+          className="px-3"
+        >
+          {filters.sortOrder === 'asc' ? '↑' : '↓'}
+        </Button>
+      </div>
+
+      {/* Clear Filters Button */}
+      {activeFiltersCount > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearFilters}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <X className="h-4 w-4 mr-1" />
+          Clear
+        </Button>
+      )}
+    </div>
+  </div>
+</div>
+
   )
 }
 

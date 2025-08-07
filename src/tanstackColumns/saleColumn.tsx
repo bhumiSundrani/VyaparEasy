@@ -44,7 +44,7 @@ const MobilePurchaseCard = ({ sale, onEdit, onDelete, onView, editDisabled, view
   const isPaid = sale.paymentType === 'cash';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 space-y-3 mb-3 min-w-[250px] ml-auto mr-auto">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 space-y-3 mb-3 max-w-[320px] ml-auto mr-auto">
       {/* Header Section - Supplier and Payment Info */}
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
