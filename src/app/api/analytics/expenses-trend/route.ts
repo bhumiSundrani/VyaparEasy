@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
@@ -79,13 +80,16 @@ export async function GET (req: NextRequest){
     }
   }
 ]);
-
-
-    return NextResponse.json({
+const responseData = {
         success: true,
         message: "Expenses trend data received",
         otherExpensesTrend
-    }, {status: 200})
+    }
+
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 300)
+
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

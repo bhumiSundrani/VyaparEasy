@@ -8,9 +8,37 @@ import { fetchImageForCategory } from "@/lib/fetchImages/fetchImageForCategory";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import { cookies } from "next/headers";
 import UserModel from "@/models/User.model";
+import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
 export async function DELETE(request: Request, {params}: {params: Promise<{categoryId: string}>}) {
     await dbConnect();
     try {
+        const cookieStore = await cookies();
+                const token = cookieStore.get('token')?.value;
+                if (!token) {
+                    return NextResponse.json({
+                        success: false,
+                        message: "Unauthorized access",
+                        categories: []
+                    }, { status: 401 });
+                }
+        
+                const decodedToken = await verifyToken(token);
+                if (!decodedToken) {
+                    return NextResponse.json({
+                        success: false,
+                        message: "Invalid token",
+                        categories: []
+                    }, { status: 401 });
+                }
+        
+                const user = await UserModel.findOne({ phone: decodedToken.phone });
+                if (!user) {
+                    return NextResponse.json({
+                        success: false,
+                        message: "User not found",
+                        categories: []
+                    }, { status: 401 });
+                }
         const { categoryId } = await params;
         console.log("Category ID:", categoryId); // Debug log
         
@@ -50,6 +78,8 @@ export async function DELETE(request: Request, {params}: {params: Promise<{categ
                 message: "Failed to delete category"
             }, {status: 500});
         }
+
+                await invalidateCache(`/api/categories:${token}`)
         
         return NextResponse.json({
             success: true,
@@ -169,6 +199,9 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{category
             { $set: {name, parentCategory, imageUrl} },
             { new: true, runValidators: true }
         );
+
+                await invalidateCache(`/api/categories:${token}`)
+
 
         return NextResponse.json({
             success: true,

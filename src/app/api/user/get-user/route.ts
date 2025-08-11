@@ -1,11 +1,12 @@
 import { verifyToken } from '@/lib/jwtTokenManagement'
 import { JWTToken } from '@/types/jwt'
 import {cookies} from 'next/headers'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import UserModel from '@/models/User.model'
 import dbConnect from '@/lib/dbConnect'
+import { setCache } from '@/app/middlewares/cacheMiddleware'
 
-export async function GET(){
+export async function GET(req: NextRequest){
     try {
         const cookieStore = await cookies()
         const token = cookieStore.get('token')?.value
@@ -48,7 +49,7 @@ export async function GET(){
             }, {status: 404})
         }
 
-        return NextResponse.json({
+        const responseData = {
             success: true,
             message: "User data found",
             user: {
@@ -57,7 +58,11 @@ export async function GET(){
                 shopName: user.shopName,
                 preferredLanguage: user.preferredLanguage
             }
-        }, {status: 200})
+        }
+
+        await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 360000)
+
+        return NextResponse.json(responseData, {status: 200})
     } catch (error) {
         console.error("Error in get-user route:", error)
         return NextResponse.json({

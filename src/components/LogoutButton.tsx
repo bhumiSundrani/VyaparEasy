@@ -28,7 +28,7 @@ export function LogoutButton({ setPageLoading }: LogoutButtonProps) {
     setLogout(true);// Set page loading to true when logout starts
     
     try {
-      await axios.post('/api/auth/logout');
+      await axios.post('/api/user/logout');
       setPageLoading(true); 
       router.push('/verify-user');
     } catch (error) {

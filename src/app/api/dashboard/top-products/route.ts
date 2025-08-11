@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
@@ -56,11 +57,16 @@ export async function GET (req: NextRequest){
                 {$limit: 5}
                ])
 
-    return NextResponse.json({
+               const responseData = {
         success: true,
         message: "Top products data received",
         topProducts
-    }, {status: 200})
+    }
+
+                                  await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 3600);
+               
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

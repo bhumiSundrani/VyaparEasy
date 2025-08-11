@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
@@ -93,8 +94,7 @@ export async function GET(req: NextRequest) {
     const expenses = expensesAgg[0]?.expenses || 0;
     const netProfit = revenue - cogs - expenses;
 
-    // 5. Response
-    return NextResponse.json({
+    const responseData = {
       success: true,
       message: "Profit and Loss statement sent successfully",
       from,
@@ -105,7 +105,13 @@ export async function GET(req: NextRequest) {
         expenses,
         netProfit
       }
-    });
+    }
+
+          await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 300)
+    
+
+    // 5. Response
+    return NextResponse.json(responseData, {status: 200});
 
   } catch (error) {
     console.error("Error fetching profit/loss summary:", error);

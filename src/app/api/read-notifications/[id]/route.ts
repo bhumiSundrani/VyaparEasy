@@ -1,3 +1,4 @@
+import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import UserModel from "@/models/User.model";
@@ -60,6 +61,9 @@ export async function PATCH(
             isRead: true
         });
 
+
+        await invalidateCache(`/api/get-notifications:${token}`)
+        
         return NextResponse.json({
             success: true,
             message: "Notification marked as read"

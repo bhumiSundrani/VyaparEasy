@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import UserModel from "@/models/User.model";
 import mongoose from "mongoose";
+import { invalidateCache, setCache } from "@/app/middlewares/cacheMiddleware";
 
 export async function POST(req: NextRequest) {
     await dbConnect();
@@ -122,6 +123,10 @@ export async function POST(req: NextRequest) {
                 }, { status: 500 });
             }
 
+            console.log("Cache exhausted")
+            await invalidateCache(`${req.nextUrl.pathname}:${token}`)
+                    await invalidateCache(`/api/dashboard/get-stats:${token}`)
+
             return NextResponse.json({
                 success: true,
                 message: "Product updated successfully",
@@ -158,6 +163,10 @@ export async function POST(req: NextRequest) {
             });
 
             const savedProduct = await newProduct.save();
+      console.log("Exhausted cache data")
+
+            await invalidateCache(`${req.nextUrl.pathname}:${token}`)
+            
 
             return NextResponse.json({
                 success: true,
@@ -175,7 +184,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-export async function GET(){
+export async function GET(req: NextRequest){
     await dbConnect();
     try {
         // Get user from token
@@ -213,14 +222,17 @@ export async function GET(){
         const products = await ProductModel.find({ user: user._id }).populate({
             path: 'category',
             select: 'name'
-        }).sort({updatedAt: -1, createdAt: -1 }); ;
+        }).sort({updatedAt: -1, createdAt: -1 });
 
-        return NextResponse.json(
-      {
+        const responseData = {
         success: true,
         message: products.length > 0 ? "Products found successfully" : "No products found",
         products,
-      },
+      }
+        await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 120);
+
+        return NextResponse.json(
+        responseData,
       { status: 200 }
     );
     } catch (error) {

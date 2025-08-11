@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
@@ -60,11 +61,16 @@ export async function GET (req: NextRequest){
                 {$limit: 5}
                ])
 
-    return NextResponse.json({
+               const responseData = {
         success: true,
         message: "Top creditors data received",
         topCreditors
-    }, {status: 200})
+    }
+
+                   await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 1800);
+               
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

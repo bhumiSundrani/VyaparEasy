@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
@@ -49,11 +50,16 @@ export async function GET (){
                         $lte: today,
                     },
                     }).sort({ createdAt: -1 });
-                    return NextResponse.json({
+
+                    const responseData = {
                         success: true,
                         message: notifications.length > 0 ? "Notifications fetched successfully" : "No notifications found",
                         notifications
-                    }, {status: 200})
+                    }
+
+                    await setCache(`/api/get-notifications:${token}`, responseData)
+
+                    return NextResponse.json(responseData, {status: 200})
             } catch (error) {
                 console.log("Error fetching notifications: ", error)
                 return NextResponse.json({

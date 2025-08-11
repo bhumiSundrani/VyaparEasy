@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
@@ -51,14 +52,16 @@ export async function GET (req: NextRequest){
   _id: sale._id.toString(),
 }));
 
-               console.log('recentSales is:', Array.isArray(recentSales), typeof recentSales, recentSales?.constructor?.name);
-
-
-    return NextResponse.json({
+const responseData = {
         success: true,
         message: "Recent sales data received",
         recentSales: recentSalesSerialized
-    }, {status: 200})
+    }
+
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData);
+
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

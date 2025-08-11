@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
@@ -52,12 +53,17 @@ export async function GET (req: NextRequest){
   _id: purchase._id.toString(),
 }));
 
-
-    return NextResponse.json({
+const responseData = {
         success: true,
         message: "Recent purchases data received",
         recentPurchases: recentPurchaseSerialized
-    }, {status: 200})
+    }
+
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData);
+
+
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

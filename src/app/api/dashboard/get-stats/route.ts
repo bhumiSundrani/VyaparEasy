@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
@@ -6,9 +7,9 @@ import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
 import { User } from "lucide-react";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET (){
+export async function GET (req: NextRequest){
         await dbConnect()
 
     // Get user from token
@@ -139,7 +140,7 @@ export async function GET (){
   }
 ]);
 
-                return NextResponse.json({
+const responseData = {
                     success: true,
                     message: "Stats received successfully",
                     stats: {
@@ -150,7 +151,11 @@ export async function GET (){
                         cashReceived: totalCashReceived[0]?.totalCashReceivedAmount || 0,
                         inventoryAmount: totalInventory[0]?.totalInventoryAmount || 0
                     }
-                }, {status: 200})
+                }
+
+await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 300)
+
+                return NextResponse.json(responseData, {status: 200})
 
             } catch (error) {
                 console.log("Error fetching dashboard stats: ", error)

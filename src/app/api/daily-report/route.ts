@@ -69,7 +69,6 @@ export async function GET(req: Request) {
       isRead: false,
     });
 
-    console.log(`✅ Notification sent to ${user.phone} | ${message}`);
   }
 
   return NextResponse.json({ success: true, message: "All user reports sent" }, { status: 200 });

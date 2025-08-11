@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from 'next/headers';
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import UserModel from "@/models/User.model";
+import { invalidateCache, setCache } from "@/app/middlewares/cacheMiddleware";
 
 export async function POST(req: NextRequest){
     await dbConnect();
@@ -63,9 +64,7 @@ export async function POST(req: NextRequest){
         }
 
         // Fetch image from Pexels
-        console.log("Fetching image for category:", name);
         const imageUrl = await fetchImageForCategory(name);
-        console.log("Fetched image URL:", imageUrl);
 
         const category = await CategoryModel.create({
             name, 
@@ -75,7 +74,7 @@ export async function POST(req: NextRequest){
             user: user._id
         });
 
-        console.log("Created category:", category);
+        await invalidateCache(`${req.nextUrl.pathname}:${token}`)
 
         return NextResponse.json({
             success: true,
@@ -96,7 +95,7 @@ export async function POST(req: NextRequest){
     }
 }
 
-export async function GET(){
+export async function GET(req: NextRequest){
     await dbConnect()
     try {
         // Get user from token
@@ -138,11 +137,15 @@ export async function GET(){
             }, {status: 200})
         }
 
-        return NextResponse.json({
+        const responseData = {
             success: true,
             message: "Categories found successfully",
             categories
-        }, {status: 200})
+        }
+
+        await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 3600)
+
+        return NextResponse.json(responseData, {status: 200})
     } catch (error) {
         console.error("Error fetching categories:", error)
         return NextResponse.json({

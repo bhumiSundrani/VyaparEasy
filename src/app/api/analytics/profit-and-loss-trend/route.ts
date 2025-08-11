@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
@@ -121,13 +122,18 @@ export async function GET(req: NextRequest) {
       return revenue - cogs - expenses;
     });
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       message: "Profit/Loss data sent successfully",
       view,
       labels,
       netProfits,
-    });
+    }
+
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 300)
+    
+
+    return NextResponse.json(responseData, {status: 200});
   } catch (error) {
     console.error("Error fetching profit/loss data:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });

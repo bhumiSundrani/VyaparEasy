@@ -1,3 +1,4 @@
+import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import PartyModel from "@/models/Party.model";
@@ -212,6 +213,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 }
             }
         }
+
+                await invalidateCache(`/api/products:${token}`)
+                            await invalidateCache(`/api/dashboard/get-stats:${token}`)
+await invalidateCache(`/api/dashboard/recent-sales:${token}`)
+                                                    await invalidateCache(`/api/dashboard/top-creditors:${token}`)
+                          await invalidateCache(`/api/dashboard/top-products:${token}`)
+                          await invalidateCache(`/api/analytics/credit-analytics:${token}`)
+                                                    await invalidateCache(`/api/analytics/profit-and-loss-statement:${token}`)
+                                                    await invalidateCache(`/api/analytics/profit-and-loss-trend:${token}`)
+                                                  await invalidateCache(`/api/analytics/sales-analytics:${token}`)
+                                                  await invalidateCache(`/api/analytics/sales-trend:${token}`)
 
         return NextResponse.json({
             success: true,

@@ -1,7 +1,6 @@
 // components/Navbar.tsx
 'use client';
 
-import { FiBell } from 'react-icons/fi';
 import axios from 'axios';
 import SideBar from './SideBar';
 import { useSelector } from 'react-redux';
@@ -23,7 +22,7 @@ export default function Navbar() {
 
   useEffect(()=>{
       async function getUser(){
-        const res = await axios.get('/api/auth/get-user')
+        const res = await axios.get('/api/user/get-user')
         const user = res.data?.user || null
         return user
       }

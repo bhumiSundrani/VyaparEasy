@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import ProductModel from "@/models/Product.model";
@@ -64,11 +65,15 @@ export async function GET (req: NextRequest){
                 return !soldInfo || new Date(soldInfo.lastSold) < deadStockThreshold
                })
 
-    return NextResponse.json({
+    const responseData = {
         success: true,
         message: "Dead stock data received",
         deadStock
-    }, {status: 200})
+    }
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 600)
+
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

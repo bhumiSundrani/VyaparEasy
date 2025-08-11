@@ -1,3 +1,4 @@
+import { setCache } from "@/app/middlewares/cacheMiddleware";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import TransactionModel from "@/models/Transaction.Model";
@@ -59,11 +60,15 @@ export async function GET (req: NextRequest){
   }
                ])
 
-    return NextResponse.json({
+    const responseData = {
         success: true,
         message: "Credit analytics data received",
         creditAnalysis
-    }, {status: 200})
+    }
+    
+    await setCache(`${req.nextUrl.pathname}:${token}`, responseData, 300)
+
+    return NextResponse.json(responseData, {status: 200})
 
 
             } catch (error) {

@@ -1,3 +1,4 @@
+import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
 import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import PartyModel from "@/models/Party.model";
@@ -127,6 +128,16 @@ export async function POST(req: NextRequest) {
           productSupplier.transactionId.push(transaction._id as Types.ObjectId);
           await productSupplier.save();
       }
+
+              await invalidateCache(`/api/products:${token}`)
+                    await invalidateCache(`/api/dashboard/get-stats:${token}`)
+                                    await invalidateCache(`/api/dashboard/recent-purchases:${token}`)
+
+                          await invalidateCache(`/api/analytics/profit-and-loss-statement:${token}`)
+                          await invalidateCache(`/api/analytics/profit-and-loss-trend:${token}`)
+                        await invalidateCache(`/api/analytics/expenses-trend:${token}`)
+                                                await invalidateCache(`/api/analytics/purchases-trend:${token}`)
+
 
       return NextResponse.json({
           success: true,
