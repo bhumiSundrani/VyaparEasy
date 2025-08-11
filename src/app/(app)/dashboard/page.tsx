@@ -9,23 +9,23 @@ import LowStockAlert from './LowStockAlert'
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-[#f5f7fa] px-2 py-4 sm:px-6 lg:px-12 overflow-auto">
-        <div className="mb-3 sm:mb-6 ml-2 flex flex-col sm:flex-row justify-between sm:w-full space-y-3.5 my-auto">
-            <div className="flex items-center space-x-1 sm:space-x-2">
+    <div className="min-h-screen bg-[#f5f7fa] px-3 py-4 sm:px-6 lg:px-8 xl:px-12 overflow-auto">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
                 <Image
                     src="/7936592.png"
-                    alt="Purchase Management"
+                    alt="Dashboard"
                     width={30}
                     height={30}
-                    className="object-contain sm:h-[40px] sm:w-[40px]"
+                    className="object-contain w-8 h-8 sm:w-10 sm:h-10"
                 />              
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
-                        </div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Dashboard</h1>
+            </div>
         </div>
-        <div className='space-y-6'>
+        <div className='space-y-4 sm:space-y-6'>
             <StatsCards/>
             <RecentActivities/>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6'>
                 <TopCreditors/>
                 <TopProducts/>
             </div>

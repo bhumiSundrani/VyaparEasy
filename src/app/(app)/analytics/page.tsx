@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Package, Users, AlertTriangle, BarChart3 } from 'lucide-react'
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Package, Users, AlertTriangle, BarChart3, Loader2 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import axios from 'axios'

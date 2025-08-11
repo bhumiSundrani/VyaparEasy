@@ -54,9 +54,9 @@ const RecentActivities = () => {
     }
   return (
     <div>
-      <div className="bg-white rounded-2xl shadow-lg p-6">
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
         {/* Header */}
-        <div className="sm:text-2xl text-xl font-bold text-gray-800 mb-6">
+        <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
           Recent Activities
         </div>
     <Tabs defaultValue="sales" className="">
