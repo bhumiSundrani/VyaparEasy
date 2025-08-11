@@ -103,11 +103,13 @@ const LayoutWrapper = ({
       <div className="flex-1 flex flex-col">
         <Navbar />
         <main className="overflow-auto h-full relative">
+          {/* Only show loader overlay on desktop */}
           {pageLoading && !isMobile && (
-            <div className="absolute inset-0 z-10">
+            <div className="fixed inset-0 z-50 bg-white bg-opacity-80 flex items-center justify-center">
               <Loader />
             </div>
           )}
+          {/* Only apply opacity-50 if loader is visible and not on mobile */}
           <div className={pageLoading && !isMobile ? "opacity-50" : ""}>
             {children}
           </div>
