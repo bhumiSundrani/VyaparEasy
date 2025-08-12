@@ -159,7 +159,7 @@ export default function AnalyticsPage() {
 
       {/* Charts Section */}
       <Tabs defaultValue="sales" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 sm:gap-2">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 sm:gap-2 h-auto">
           <TabsTrigger value="sales" className="text-xs sm:text-sm">Sales</TabsTrigger>
           <TabsTrigger value="purchases" className="text-xs sm:text-sm">Purchases</TabsTrigger>
           <TabsTrigger value="expenses" className="text-xs sm:text-sm">Expenses</TabsTrigger>
