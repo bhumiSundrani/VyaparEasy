@@ -1,4 +1,5 @@
 import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import UserModel from "@/models/User.model";
 import { cookies } from "next/headers";
@@ -6,6 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest){
     try {
+            await dbConnect()
+
 
         const cookieStore = await cookies();
                     const { searchParams } = new URL(req.url);

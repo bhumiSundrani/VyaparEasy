@@ -1,4 +1,5 @@
 import { invalidateCache } from "@/app/middlewares/cacheMiddleware";
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import UserModel from "@/models/User.model";
@@ -9,6 +10,8 @@ export async function PATCH(
     request: Request,
     context: { params: Promise<{ id: string }> }
 ) {
+        await dbConnect()
+    
     try {
         // Add defensive check for params
         if (!context || !context.params) {

@@ -1,3 +1,4 @@
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import { sendSMS } from "@/lib/sendSMS";
 import NotificationModel from "@/models/Notification.model";
@@ -8,6 +9,8 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET (req: NextRequest){
+        await dbConnect()
+    
             const { searchParams } = new URL(req.url);
             const phone = searchParams.get("phone")
             const amount = searchParams.get("amount")

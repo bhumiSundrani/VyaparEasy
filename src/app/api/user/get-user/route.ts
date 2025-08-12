@@ -8,6 +8,8 @@ import { setCache } from '@/app/middlewares/cacheMiddleware'
 
 export async function GET(req: NextRequest){
     try {
+            await dbConnect()
+        
         const cookieStore = await cookies()
         const token = cookieStore.get('token')?.value
         
@@ -37,8 +39,6 @@ export async function GET(req: NextRequest){
                 user: null
             }, { status: 401 })
         }
-        // Verify user exists in database
-        await dbConnect()
         const user = await UserModel.findOne({ phone: decodedToken.phone })
         
         if (!user) {
