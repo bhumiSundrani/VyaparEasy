@@ -1,4 +1,5 @@
 import { setCache } from "@/app/middlewares/cacheMiddleware";
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import TransactionModel from "@/models/Transaction.Model";
 import UserModel from "@/models/User.model";
@@ -6,6 +7,8 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+      await dbConnect()
+  
   const { searchParams } = new URL(req.url);
 
   try {

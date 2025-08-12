@@ -1,4 +1,5 @@
 import { setCache } from "@/app/middlewares/cacheMiddleware";
+import dbConnect from "@/lib/dbConnect";
 import { verifyToken } from "@/lib/jwtTokenManagement";
 import NotificationModel from "@/models/Notification.model";
 import ProductModel from "@/models/Product.model";
@@ -9,6 +10,8 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET (req: NextRequest){
+        await dbConnect()
+    
     // Get user from token
             const cookieStore = await cookies();
             const { searchParams } = new URL(req.url);
