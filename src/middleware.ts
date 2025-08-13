@@ -11,9 +11,9 @@ export async function  middleware(request: NextRequest) {
     }
 
     const authResult = await authMiddleware(request);
-  if (authResult && authResult.redirected) {
-    return authResult; // unauthenticated → redirect
-  }
+  if (authResult instanceof NextResponse && authResult.headers.get("location")) {
+  return authResult; // this is a redirect
+}
 
  if (pathname.startsWith("/api")) {
   const cacheResult = await cacheMiddleware(request, (req) => {

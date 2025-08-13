@@ -10,7 +10,6 @@ export async function authMiddleware(request: NextRequest) {
 
   try {
     const user = await verifyToken(token)
-    console.log(user)
     return NextResponse.next()
   } catch (error) {
     return NextResponse.redirect(new URL('/verify-user', request.url))
