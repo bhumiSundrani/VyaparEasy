@@ -36,7 +36,6 @@ const ProductSchema : Schema<Product> = new Schema({
     },
     costPrice: {
         type: Number,
-        required: true,
         min: [0, 'Cost price cannot be negative']
     },
     sellingPrice: {

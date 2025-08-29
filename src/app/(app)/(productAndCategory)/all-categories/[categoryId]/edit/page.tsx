@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
+"use client"
 import axios from "axios";
+import { useEffect, useState, use } from "react";
 import AddEditCategoryPage, { CategoryFormData } from "../../../add-category/page";
 
 // Fix: params should be a Promise
@@ -7,28 +8,33 @@ type PageProps = {
   params: Promise<{
     categoryId: string;
   }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-const fetchCategory = async (categoryId: string): Promise<CategoryFormData | null> => {
+export default function Page({ params }: PageProps) {
+  const { categoryId } = use(params);
+  const [category, setCategory] = useState<CategoryFormData | null>(null)
+  useEffect(() => {
+    const fetchCategory = async (categoryId: string): Promise<CategoryFormData | null> => {
   try {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/categories/${categoryId}`);
-    return res.data.category;
+    return res.data.category as CategoryFormData;
   } catch (error) {
     console.log(error)
     return null;
   }
 };
 
-export default async function Page({ params }: PageProps) {
-  const { categoryId } = await params;
+    const loadCategory = async () => {
+      const fetchedCategory = await fetchCategory(categoryId);
+      if (fetchedCategory) {
+        setCategory(fetchedCategory);
+      }
+    };
 
-  let category: CategoryFormData | null = null;
-
-  if (categoryId !== "new") {
-    category = await fetchCategory(categoryId);
-    if (!category) return notFound(); // show 404 if category doesn't exist
-  }
+    if (categoryId) {
+      loadCategory();
+    }
+  }, [categoryId]);
 
   return <AddEditCategoryPage category={category} />; // Pass the category data as a prop
 }

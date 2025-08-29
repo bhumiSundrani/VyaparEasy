@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import axios, { AxiosError } from "axios";
 import { ApiResponse } from "@/types/ApiResponse";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SelectUnit from "@/components/SelectUnit";
 import SelectGroupedCategory from "@/components/SelectGroupedCategory";
 import Image from "next/image";
@@ -35,6 +35,7 @@ export interface ProductFormData {
 }
 
 const ProductForm = ({product}: {product: ProductFormData | null}) => {
+  console.log("From product form: ", product)
   const [adding, setAdding] = useState(false)
   const [close, setClosing] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
@@ -53,6 +54,12 @@ const ProductForm = ({product}: {product: ProductFormData | null}) => {
       imageUrl: product ? product.imageUrl : ""
     },
   });
+
+  useEffect(() => {
+  if (product) {
+    form.reset(product);
+  }
+}, [product, form]);
 
   const onSubmit = async (data: ProductFormData) => {
     setAdding(true)
