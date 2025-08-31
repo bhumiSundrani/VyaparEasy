@@ -1,7 +1,7 @@
 "use client"
 import axios from "axios";
 import { useEffect, useState, use } from "react";
-import AddEditCategoryPage, { CategoryFormData } from "../../../add-category/page";
+import { AddEditCategoryPage, CategoryFormData } from "../../../add-category/AddEditCategoryPage";
 
 // Fix: params should be a Promise
 type PageProps = {

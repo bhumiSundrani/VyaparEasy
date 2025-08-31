@@ -1,6 +1,6 @@
 "use client";
 
-import ProductForm, { ProductFormData } from "../../../add-product/page";
+import ProductForm, { ProductFormData } from "../../../add-product/AddEditProductPage";
 import axios from "axios";
 import { useEffect, useState, use } from "react";
 
